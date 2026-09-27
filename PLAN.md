@@ -54,34 +54,39 @@ the right Indian food first with an INDB or IFCT tag, results appear as you type
 visible lag, and the tests pass.
 
 ## Stage 3 — Logging
+*Stage 3a (core logging) done 2026-09-27: add from the food screen, Log tab timeline with edit and swipe-to-delete, date switcher.*
+*Stage 3b (fast logging) done 2026-09-27: suggestions, recents, favourites, one-tap add, quick add, copy meal/day, Undo bar.*
 - [x] ~~Approve `babel-plugin-inline-import`~~ — done in Stage 1
-- [ ] Rest of the Drizzle schema for user.db (SPEC §4.2) + a new migration (`npm run db:generate`); the migration runner and `settings` table already exist from Stage 1
-- [ ] Seed the 4 default meal slots and default settings
-- [ ] `src/lib/day.ts`: `logicalDay` (4 am cutoff) and `autoSlot` + tests (midnight wrap, 3:59 am → previous day)
-- [ ] `src/lib/units.ts`: `gramsPerUnit`, `unitsForFood` + tests (katori dal, medium roti, tsp ghee, ml milk) — *`gramsPerUnit`, `quantityStep`, `quantityForNewUnit` done in Stage 2b; units per food are read by `getFoodDetail`*
-- [ ] `src/lib/nutrition.ts`: entry and day totals from grams (SPEC §5.3) + tests — *`nutrientsForGrams` done in Stage 2b*
-- [ ] Add food modal: slot chip, search, Recent / Favourites / Suggested tabs (SPEC §2.3, §5.9)
-- [ ] Portion sheet: qty stepper, unit chips, grams preview, live kcal/macros, Log button, haptic tick
-- [ ] Quick add screen
-- [ ] Edit entry sheet (qty, unit, slot, time, delete)
-- [ ] Favourites toggle
-- [ ] Undo store (Zustand) + 5-second Undo bar for log, delete, copy (SPEC §5.11)
-- [ ] Soft delete + *Recently deleted* list + 30-day purge at app start
-- [ ] Copy a meal to another day/slot; copy yesterday to today; copy a whole day
-- [ ] A simple list of today's entries on the Today tab (grouped by slot)
+- [ ] Rest of the Drizzle schema for user.db (SPEC §4.2) + a new migration (`npm run db:generate`); the migration runner and `settings` table already exist from Stage 1 — *`meal_slots` + `log_entries` done in Stage 3a (migration `0001_log_entries`); the other tables come with their features*
+- [x] Seed the 4 default meal slots (at every app start, keeping user changes) — default settings already come from the settings store
+- [x] `src/lib/day.ts`: `logicalDay` (4 am cutoff) and `autoSlot` + tests (midnight wrap, 3:59 am → previous day), plus `timeOnDay`, `defaultEntryMinute`
+- [x] `src/lib/units.ts`: `gramsPerUnit`, `entryGrams`, `stepQuantity` + tests for every unit type (katori, glass, cup, tsp, tbsp, ml, g, roti S/M/L, piece, slice, bowl) — units per food are read by `getFoodDetail`
+- [x] `src/lib/nutrition.ts`: `entryNutrients` (food and quick add) and `sumNutrients` for meal/day totals (SPEC §5.3) + tests
+- [x] Add food: slot chips, search, *Often at {slot}* suggestions + Recent / Favourites tabs with one-tap ⊕ (SPEC §2.3, §5.9) — `src/lib/suggestions.ts` + tests; still a pushed screen (modal later); My foods / Thalis tabs come with Stage 7
+- [ ] Portion sheet: qty stepper, unit chips, grams preview, live kcal/macros, Log button, haptic tick — *done as the "Add to log" sheet on the food screen (Stage 3a) with the haptic tick (Stage 3b, expo-haptics); still to do: open it straight from search*
+- [x] Quick add (kcal + optional protein/carbs/fat + label, meal, time); edit it from the Log tab
+- [x] Edit entry sheet (qty, unit, slot, time, delete) — tap an entry in the Log tab
+- [x] Favourites toggle (☆ on search results, suggestion/recent rows and the food screen; `favourites` table, migration 0002)
+- [x] Undo store (Zustand) + 5-second Undo bar for log, delete, copy (SPEC §5.11)
+- [ ] Soft delete + *Recently deleted* list + 30-day purge at app start — *soft delete done in Stage 3a (swipe left → Delete, or Delete in the Edit sheet)*
+- [x] Copy a meal to another day/slot; copy a whole day (from yesterday it goes to today by default) — `src/lib/copy.ts` + tests
+- [x] A simple list of today's entries on the Today tab (grouped by slot) — *done as the Stage 4 timeline*
 
 **Done when:** you log "1 katori dal" and "2 medium roti" to Lunch in under 10 seconds each,
 then delete one and tap Undo and it comes back, copy Lunch to tomorrow and see it there,
 quick-add 300 kcal, close and reopen the app and everything is still there.
 
 ## Stage 4 — Today screen
-- [ ] Calorie ring (gifted-charts donut): eaten / target / left, soft-blue outer arc above 100%
-- [ ] Macro pie with legend (grams vs target)
-- [ ] Top 3 contributing foods sheet per macro (+ test for the ranking)
-- [ ] Timeline: one card per visible slot with entries, slot kcal, + Add, ⋯ menu
-- [ ] Date header with ‹ › and date picker; view and edit past days
-- [ ] Empty states with friendly words (SPEC §7)
-- [ ] Before goals exist, use a placeholder 2000 kcal target, clearly marked "not set yet"
+*Done 2026-09-27: ring, macro pie + bars, top contributors, meal timeline, day header, pull to refresh, empty state.*
+- [x] Calorie ring (gifted-charts donut): eaten / target / left, soft-blue outer arc above 100%
+- [x] Macro pie with legend (grams vs target) — pie by share of calories, one bar per macro
+- [x] Top 3 contributing foods per macro (+ test for the ranking) — shown as a *Top contributors* card on Today instead of a sheet; the same food logged twice counts once; tap → its entry
+- [x] Timeline: one card per visible slot with entries, time, slot kcal, + Add, copy — *the ⋯ menu waits for Save as thali (Stage 7) and Clear meal*
+- [x] Date header with ‹ › and date picker; view and edit past days (› stops at today)
+- [x] Empty states with friendly words (SPEC §7)
+- [x] Before goals exist, use placeholder targets (2000 kcal, 60 g protein, 250 g carbs, 65 g fat in `src/lib/placeholderTargets.ts`), clearly marked as sample targets
+- [x] Pull to refresh; tapping any food (timeline or top contributors) opens its entry
+- [x] `src/lib/nutrition.ts`: `progress`, `macroKcalShares`, `topContributors`, `daySummary` + tests (totals, percentages, top contributors, empty day)
 
 **Done when:** after logging a normal day, the ring and pie match what you ate, tapping
 Protein shows your top 3 protein foods, and moving to yesterday shows yesterday's meals.
@@ -130,7 +135,7 @@ fills Lunch in one tap and Undo removes all of it.
 
 ## Stage 8 — Log calendar, weight, water
 - [ ] `src/lib/adherence.ts` (SPEC §5.6) + tests
-- [ ] Log tab: calendar with coloured dots + legend; tap a day → that day's timeline (editable)
+- [ ] Log tab: calendar with coloured dots + legend; tap a day → that day's timeline (editable) — *the editable day timeline and a plain date picker (react-native-calendars) are done in Stage 3a*
 - [ ] Trends tab: Week/Month calories bars with target line, macro averages
 - [ ] Weight: add/edit, `src/lib/trend.ts` EMA (SPEC §5.7) + tests, line chart with dots + trend line
 - [ ] Water: +1 glass on Today, custom ml, glass/goal settings, bar chart in Trends
@@ -201,3 +206,6 @@ it for a full week without a crash, and at least one says logging feels quick.
 2026-09-26 — Stage 1 Scaffold — Expo SDK 57; tabs changed to Today · Log · Trends · Profile (SPEC updated); user.db + Drizzle migrations and the settings store moved up from Stage 3; English only; 11 tests pass.
 2026-09-26 — Stage 2a foods.db — 8,907 foods (INDB 1,014 · IFCT 514 · USDA 7,379), FTS5 search index, 591 synonym terms, units per food, recipe ingredients for all 1,014 INDB dishes (oil control on 712); built with node:sqlite; IFCT via MIT @ifct2017/compositions; 130 tests pass.
 2026-09-27 — Stage 2b food search — foods.db copied on first launch and opened read-only; search by name, Hindi name, synonyms, sound and typos with match-tier ranking + 11 hand-picked pins (db_version 2); Log tab = search screen, food detail with unit picker; fixed an expo-sqlite crash on reload (FTS5 + finalize); yogurt now defaults to katori; 198 tests pass. Thalis still open.
+2026-09-27 — Stage 3a Core logging — `meal_slots` + `log_entries` in user.db (migration 0001, soft delete, UUIDs); "Add to log" sheet on the food screen (qty with 0.5 steps, unit, meal by time window, time as an hour grid); Log tab = the day's entries by meal slot with kcal per entry, slot and day, tap to edit, swipe left to delete; Yesterday · Today · Pick a date; search moved to Add food; react-native-calendars added; no new libraries for swipe or time; 285 tests pass.
+2026-09-27 — Stage 3b Fast logging — Add food shows *Often at {slot}* (0.9^days score, usual amount) + Recent / Favourites with ☆ and one-tap ⊕; quick add; copy a meal or a whole day (same time of day, or the new slot's start); 5-second Undo for log, delete and copy; `favourites` table (migration 0002); expo-haptics; search no longer autofocuses; Undo bar drawn per screen (iOS native screens swallow taps on a root overlay); 342 tests pass.
+2026-09-27 — Stage 4 Today screen — calorie ring (outer soft-blue arc above target), macro pie + grams-vs-target bars, top 3 foods per macro, meal timeline with time (shared with the Log tab as `DayTimeline`), ‹ › + calendar, pull to refresh, empty state; placeholder targets in one file until Stage 5; react-native-gifted-charts + react-native-svg added (PieChart imported from its own file, so no gradient library); 371 tests pass.

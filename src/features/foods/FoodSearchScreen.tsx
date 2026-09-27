@@ -1,16 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SourceBadge } from '@/components';
 import type { FoodSearchResult } from '@/db/foods';
 import { formatKcal, formatQty } from '@/lib/format';
 import { useTheme } from '@/theme';
 
+import { FavouriteButton } from './FavouriteButton';
 import { useFoodSearch } from './useFoodSearch';
 
 function ResultRow({ food, onPress }: { food: FoodSearchResult; onPress: () => void }) {
@@ -29,41 +29,55 @@ function ResultRow({ food, onPress }: { food: FoodSearchResult; onPress: () => v
   const portion = kcal === null ? amount : t('search.resultPortion', { portion: amount, kcal });
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${food.name}, ${portion}`}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.row,
-        {
-          minHeight: minTapTarget + spacing.md,
-          paddingHorizontal: spacing.lg,
-          paddingVertical: spacing.md,
-          backgroundColor: pressed ? colors.surfaceMuted : colors.background,
-          borderBottomColor: colors.border,
-        },
-      ]}
-    >
-      <View style={styles.flex}>
-        <Text style={{ color: colors.text, fontSize: fontSize.body }} numberOfLines={2}>
-          {food.name}
-        </Text>
-        <Text
-          style={{ color: colors.textSecondary, fontSize: fontSize.caption, marginTop: 2 }}
-          numberOfLines={1}
-        >
-          {portion}
-        </Text>
-      </View>
-      <View style={{ marginLeft: spacing.md }}>
-        <SourceBadge source={food.source} />
-      </View>
-    </Pressable>
+    <View style={[styles.row, { borderBottomColor: colors.border, paddingRight: spacing.xs }]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${food.name}, ${portion}`}
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.flex,
+          styles.rowInner,
+          {
+            minHeight: minTapTarget + spacing.md,
+            paddingLeft: spacing.lg,
+            paddingVertical: spacing.md,
+            opacity: pressed ? 0.6 : 1,
+          },
+        ]}
+      >
+        <View style={styles.flex}>
+          <Text style={{ color: colors.text, fontSize: fontSize.body }} numberOfLines={2}>
+            {food.name}
+          </Text>
+          <Text
+            style={{ color: colors.textSecondary, fontSize: fontSize.caption, marginTop: 2 }}
+            numberOfLines={1}
+          >
+            {portion}
+          </Text>
+        </View>
+        <View style={{ marginLeft: spacing.md }}>
+          <SourceBadge source={food.source} />
+        </View>
+      </Pressable>
+      <FavouriteButton foodSource="base" foodId={String(food.id)} name={food.name} />
+    </View>
   );
 }
 
+type Props = {
+  /** The meal slot being logged to; it is passed on to the food screen. */
+  slot?: string;
+  /** Shown above the search box (the slot chips). */
+  header?: ReactNode;
+  /** Shown under the search box (Quick add). */
+  actions?: ReactNode;
+  /** Shown instead of the hint while nothing is typed (suggestions, recents, favourites). */
+  renderEmpty?: () => ReactNode;
+};
+
 /** Search foods.db as you type (SPEC §2.3). Tapping a result opens the food's details. */
-export function FoodSearchScreen() {
+export function FoodSearchScreen({ slot, header, actions, renderEmpty }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
   const { colors, spacing, fontSize, radius, minTapTarget } = useTheme();
@@ -72,25 +86,19 @@ export function FoodSearchScreen() {
 
   let message: string | null = null;
   if (search.status === 'error') message = t('search.unavailable');
-  else if (search.status === 'idle') message = t('search.hint');
+  else if (search.status === 'idle' && !renderEmpty) message = t('search.hint');
   else if (search.status === 'done' && search.results.length === 0) {
     message = t('search.noResults', { query: query.trim() });
   }
 
   return (
-    <SafeAreaView edges={['top']} style={[styles.flex, { backgroundColor: colors.background }]}>
-      <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.lg }}>
-        <Text
-          accessibilityRole="header"
-          style={{ color: colors.text, fontSize: fontSize.headline, fontWeight: '600' }}
-        >
-          {t('search.title')}
-        </Text>
+    <View style={[styles.flex, { backgroundColor: colors.background }]}>
+      <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
+        {header}
         <View
           style={[
             styles.searchBar,
             {
-              marginTop: spacing.md,
               marginBottom: spacing.sm,
               minHeight: minTapTarget,
               paddingLeft: spacing.md,
@@ -132,9 +140,12 @@ export function FoodSearchScreen() {
             </Pressable>
           )}
         </View>
+        {actions}
       </View>
 
-      {message !== null ? (
+      {search.status === 'idle' && renderEmpty ? (
+        renderEmpty()
+      ) : message !== null ? (
         <Text
           style={{
             color: colors.textSecondary,
@@ -153,7 +164,10 @@ export function FoodSearchScreen() {
             <ResultRow
               food={item}
               onPress={() =>
-                router.push({ pathname: '/food/[id]', params: { id: String(item.id) } })
+                router.push({
+                  pathname: '/food/[id]',
+                  params: slot ? { id: String(item.id), slot } : { id: String(item.id) },
+                })
               }
             />
           )}
@@ -161,7 +175,7 @@ export function FoodSearchScreen() {
           keyboardDismissMode="on-drag"
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -173,6 +187,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
+  rowInner: { flexDirection: 'row', alignItems: 'center' },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',

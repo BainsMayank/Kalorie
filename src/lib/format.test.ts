@@ -1,4 +1,4 @@
-import { formatAmount, formatKcal, formatQty } from './format';
+import { formatAmount, formatKcal, formatPercent, formatQty } from './format';
 
 describe('formatKcal', () => {
   it('rounds to whole kcal with thousands separators', () => {
@@ -42,5 +42,17 @@ describe('formatQty', () => {
     expect(formatQty(1.5)).toBe('1.5');
     expect(formatQty(0.25)).toBe('0.25');
     expect(formatQty(150)).toBe('150');
+  });
+});
+
+describe('formatPercent', () => {
+  it('rounds a share to a whole percent', () => {
+    expect(formatPercent(0.384)).toBe('38');
+    expect(formatPercent(1)).toBe('100');
+    expect(formatPercent(0)).toBe('0');
+  });
+
+  it('shows "<1" for a tiny share that isn’t zero', () => {
+    expect(formatPercent(0.004)).toBe('<1');
   });
 });

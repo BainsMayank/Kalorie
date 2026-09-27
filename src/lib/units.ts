@@ -94,3 +94,14 @@ export function quantityForNewUnit(
   }
   return 1;
 }
+
+/**
+ * The quantity after tapping − or + (SPEC §2.4): moves one step and snaps to the step size,
+ * never going below one step (so 0.5 roti and 0.25 katori are possible, 0 is not).
+ */
+export function stepQuantity(qty: number, unit: string, direction: 1 | -1): number {
+  const size = quantityStep(unit);
+  const snapped = Math.round((qty + direction * size) / size) * size;
+  // Round away floating-point dust (0.1 + 0.2 = 0.30000000000000004).
+  return Math.max(size, Math.round(snapped * 1000) / 1000);
+}

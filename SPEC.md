@@ -61,6 +61,9 @@ never feel like a chore**.
 | Food data build (Stage 2) | Node's built-in `node:sqlite` (has FTS5) instead of better-sqlite3 · IFCT from `@ifct2017/compositions` **2.0.9** (MIT, pinned) because `ifct2017` ≥ 2.1 is AGPL-3.0 · `xlsx` 0.20.3 from the SheetJS CDN (the npm copy is outdated) · foods get a Roman Hindi `name_hi` and 4 completeness flags |
 | Tabs (changed in Stage 1) | Today · Log · Trends · Profile. Log = timeline + calendar (was History); Profile = settings and account (was More) |
 | Search ranking (Stage 2b, 2026-09-27) | Match tiers refined (§5.1 step 4) and hand-picked **search pins** added for staples the data can't rank on its own (plain curd exists only in USDA). Until Stage 8, the Log tab shows food search + a food detail screen (`app/food/[id].tsx`) so search can be tried on the phone |
+| Core logging (Stage 3a, 2026-09-27) | `log_entries` gains an optional `note`; no `photo_uri`/`status` (photo-now-log-later is removed from the plan) · built-in `meal_slots.name` is NULL so the name comes from en.json · the Log tab shows the day's timeline and the food search moved to an *Add food* screen (`app/add/index.tsx`, a pushed screen until the full modal) · swipe-to-delete built on React Native's PanResponder and the time picker is an hour grid + quarter hours, so no gesture or date-time-picker library is needed · *Pick a date* uses react-native-calendars · entries go to the day chosen in the Log tab |
+| Fast logging (Stage 3b, 2026-09-27) | Add food: one line of slot chips, **no search autofocus** (the keyboard hid the one-tap suggestions), *Often at {slot}* suggestions on top then Recent · Favourites tabs, each row with ☆ and a one-tap ⊕ · usual amount = most common qty + unit for that food in that slot (last 30 days); recents use the last amount; favourites their usual amount or the food's own portion · copy keeps the time of day when the slot stays the same, else the target slot's start time · Undo removes an undone log/copy for good (no *Recently deleted* clutter) and restores an undone delete · the Undo bar is drawn inside each screen (Log tab, Add food): on iOS a bar outside the native screens can't receive taps · quick add without a label is stored with an empty name and shown as "Quick add" · `favourites` rows are removed when un-starred · expo-haptics added (approved list) for the logged tick |
+| Today screen (Stage 4, 2026-09-27) | Today and Log show the **same day** (the log store's `day`), so *+ Add* always goes to the day on screen; ‹ › step a day, › stops at today, tapping the day's name opens the calendar · until goals exist the targets come from `src/lib/placeholderTargets.ts` (2000 kcal · 60 g protein · 250 g carbs · 65 g fat), shown with a "sample targets" line · the ring fills in the neutral text colour on a grey track; above target a thin soft-blue (`offTarget`) outer arc grows up to one more full circle · macro pie = share of calories from macros (4/4/9 kcal per g); bars stop at full, the grams say the rest · **Top contributors** is a card on Today (all three macros), not a sheet: the same food logged more than once counts once and tapping it opens its biggest entry; each quick add is its own item · a meal card's time is when its first item was eaten · pull to refresh reads the slots and the day again · react-native-svg added (required by react-native-gifted-charts); `PieChart` is imported from `react-native-gifted-charts/dist/PieChart` because the package's main file also loads charts that need a gradient library |
 
 ---
 
@@ -114,14 +117,17 @@ Top to bottom:
   *Recently deleted*.
 - **Undo bar** — after log, delete, copy or clear; 5 seconds; one tap reverses the whole action.
 
-### 2.3 Add food (modal, `app/add/index.tsx`)
-- **Slot chip** at top, pre-selected by time window (§5.8); tap to change.
-- **Search bar** (autofocus). Results in a FlashList: name, source tag
-  (INDB / IFCT / USDA / My food / Product), a typical portion + its kcal, ☆ favourite.
-- When the search box is empty, show tabs: **Suggested** (time-of-day, §5.9) ·
-  **Recent** · **Favourites** · **My foods** · **Thalis**.
-- Buttons row: **Scan barcode** · **Quick add** · **Create food**.
-- Tap a result → **Portion sheet**.
+### 2.3 Add food (`app/add/index.tsx` — a pushed screen for now, a modal later)
+- **Slot chips** at top (one scrolling line), pre-selected by time window (§5.8), or the slot
+  whose *+ Add* was tapped; tap to change.
+- **Search bar** (not focused on open, so the suggestions below stay visible). Results in a
+  FlashList: name, source tag (INDB / IFCT / USDA / My food / Product), a typical portion + its
+  kcal, ☆ favourite.
+- When the search box is empty: **Often at {slot}** (time-of-day suggestions, §5.9) on top, then
+  tabs **Recent** · **Favourites** (· **My foods** · **Thalis** later). Every row shows the amount
+  it would be logged at + kcal, ☆, and a ⊕ that logs it in one tap (haptic tick + Undo bar).
+- Buttons row: **Quick add** (· **Scan barcode** · **Create food** later).
+- Tap a result → the food screen with its **Portion sheet** (*Add to log*).
 
 ### 2.4 Portion sheet (bottom sheet)
 - Food name, source tag, ☆ favourite toggle.
@@ -168,7 +174,9 @@ The **Pending lookups** card on Today lists queued barcodes; tapping retries.
   → *Log selected* to the chosen slot. *Save as thali* from any meal card.
 
 ### 2.10 Log tab (`app/(tabs)/log.tsx`)
-- Opens on **today's timeline** (meal-slot cards as in §2.2), editable.
+- Opens on **today's timeline** (meal-slot cards as in §2.2), editable. At the top: the day's
+  name and date, and *Yesterday* · *Today* · *Pick a date* (calendar sheet). New entries go to
+  the day shown here. *(Stage 3a)*
 - **Calendar** (react-native-calendars) with day dots coloured by adherence (§5.6),
   plus a legend. Month swipe.
 - Streak summary ("Longest: 34 days · This week: 5 of 7 logged").
@@ -440,7 +448,7 @@ Targets for a day = the row with the latest `effective_from <= day`.
 | Column | Type |
 |---|---|
 | id | TEXT PK (`breakfast`, `lunch`, `snacks`, `dinner`, or UUID for custom) |
-| name | TEXT |
+| name | TEXT NULL (NULL for a built-in slot that hasn't been renamed: the name comes from en.json) |
 | position | INTEGER |
 | start_min | INTEGER (minutes after midnight, e.g. 240 = 4:00) |
 | end_min | INTEGER |
@@ -465,6 +473,7 @@ Defaults: Breakfast 04:00–11:00 · Lunch 11:00–16:00 · Snacks 16:00–19:00
 | grams | REAL NULL | qty × unit grams, computed at log time; NULL for quick |
 | oil_level | INTEGER | −1 less, 0 normal, +1 more |
 | quick_kcal, quick_protein_g, quick_carb_g, quick_fat_g | REAL NULL | quick add only |
+| note | TEXT NULL | optional note from the user |
 | batch_id | TEXT NULL | shared by entries created in one action (copy/thali) — used by Undo |
 | created_at, updated_at, deleted_at | INTEGER | |
 
@@ -668,10 +677,15 @@ autoSlot(time)   = first visible slot whose window [start_min, end_min) contains
 
 ### 5.9 Time-of-day suggestions
 ```
-For the current slot, over the last 30 days:
+For the current slot, over the last 30 days (days ago 0–29, never future days):
   score(food) = Σ over its entries in that slot of 0.9 ^ (days ago)
-Show the top 8. If the user has fewer than 3, fill from slot_suggestions.
+Show the top 8 (tie → the food logged most recently). If the user has fewer than 3, fill from
+slot_suggestions (skipping foods already shown), up to 8.
+Usual amount (what ⊕ logs): the most common qty + unit of that food's entries in that slot;
+tie → the one used most recently. Recents use the amount used last time; favourites use their
+usual amount over the last 30 days, else the last amount, else the food's default portion.
 ```
+Implemented in `src/lib/suggestions.ts` (`rankSuggestions`, `usualPortion`, `fillSuggestions`).
 
 ### 5.10 Micronutrient % and "incomplete data"
 ```
@@ -685,10 +699,14 @@ Week view    = average over logged days only.
 
 ### 5.11 Undo, copy and soft delete
 - Every user action that creates or deletes rows records an **undo action** in a Zustand
-  store: `{ kind, ids, batch_id, expiresAt: now + 5 s }`. Undo reverses it (delete the
-  created rows, or clear `deleted_at` on the deleted ones).
-- Copy meal/day: new rows with new IDs, same qty/unit/grams/oil_level, the target
-  day/slot, `logged_at` = target day at the slot's start time, one shared `batch_id`.
+  store (`src/stores/undo.ts`): the message to show and how to reverse it, for 5 s; a new
+  action replaces the old one. Undo removes the created rows for good, or clears `deleted_at`
+  on the deleted ones.
+- Copy meal/day: new rows with new IDs, same qty/unit/grams/oil_level/note, the target day
+  (and slot, for a meal), one shared `batch_id`. `logged_at` = the target day at the same time
+  of day when the slot stays the same (a copied day reads like the original), else at the
+  target slot's start time. Implemented in `src/lib/copy.ts`.
+- Default target: tomorrow when copying today, otherwise today.
 - Deleted entries stay restorable from *Recently deleted* for 30 days.
 
 ### 5.12 Reminders

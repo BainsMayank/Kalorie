@@ -13,6 +13,7 @@ export type ColorTokens = {
   text: string;
   textSecondary: string;
   iconInactive: string; // also inactive tab labels, so it must pass AA contrast as text
+  scrim: string; // dims the screen behind a bottom sheet
   // Accents (meaningful only)
   protein: string;
   carbs: string;
@@ -34,6 +35,7 @@ const light: ColorTokens = {
   text: '#141414',
   textSecondary: '#595959',
   iconInactive: '#707070',
+  scrim: 'rgba(0, 0, 0, 0.4)',
   protein: '#4F5BD5',
   carbs: '#B07D22',
   fat: '#2A8C82',
@@ -54,6 +56,7 @@ const dark: ColorTokens = {
   text: '#F2F2F2',
   textSecondary: '#A8A8A8',
   iconInactive: '#8F8F8F',
+  scrim: 'rgba(0, 0, 0, 0.6)',
   protein: '#8C95F0',
   carbs: '#D9AE5C',
   fat: '#5CC2B6',

@@ -29,3 +29,9 @@ export function formatAmount(value: number | null): string | null {
 export function formatQty(qty: number): string {
   return String(Math.round(qty * 100) / 100);
 }
+
+/** A share (0–1) as a whole percent: 0.384 → "38". Tiny shares that aren't zero → "<1". */
+export function formatPercent(share: number): string {
+  if (share > 0 && share < 0.005) return '<1';
+  return String(Math.round(share * 100));
+}

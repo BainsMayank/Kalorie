@@ -70,3 +70,87 @@ export async function getFoodDetail(db: ReadDb, id: number): Promise<FoodDetail 
     units,
   };
 }
+
+/** What lists of logged, suggested or starred foods need about a food. */
+export interface LoggedFood {
+  id: number;
+  name: string;
+  source: FoodSource;
+  nutrients: NutrientValues;
+  /** unit → its label (without a number) and grams in 1 unit; `g` is always there. */
+  units: Record<string, { label: string; grams: number }>;
+  /** The food's usual portion, e.g. 1 katori = 150 g. */
+  defaultPortion: { qty: number; unit: string; grams: number };
+}
+
+/**
+ * Reads several foods at once (one query for the foods, one for their units). Foods that no
+ * longer exist are left out of the map.
+ */
+export async function getLoggedFoods(
+  db: ReadDb,
+  ids: readonly number[],
+): Promise<Map<number, LoggedFood>> {
+  const result = new Map<number, LoggedFood>();
+  const unique = [...new Set(ids)];
+  if (unique.length === 0) return result;
+  const marks = unique.map(() => '?').join(', ');
+
+  const foods = await db.getAllAsync<
+    {
+      id: number;
+      name: string;
+      source: FoodSource;
+      default_unit: string;
+      default_qty: number;
+    } & NutrientValues
+  >(
+    `SELECT id, name, source, default_unit, default_qty, ${NUTRIENT_KEYS.join(', ')}
+       FROM foods WHERE id IN (${marks})`,
+    unique,
+  );
+  const units = await db.getAllAsync<{
+    food_id: number;
+    unit: string;
+    label: string;
+    grams: number;
+  }>(`SELECT food_id, unit, label, grams FROM food_units WHERE food_id IN (${marks})`, unique);
+  const [gram] = await db.getAllAsync<{ label: string }>(
+    `SELECT label FROM unit_defaults WHERE unit = 'g'`,
+    [],
+  );
+
+  for (const food of foods) {
+    const nutrients = {} as NutrientValues;
+    for (const key of NUTRIENT_KEYS) nutrients[key] = food[key];
+    result.set(food.id, {
+      id: food.id,
+      name: food.name,
+      source: food.source,
+      nutrients,
+      units: { g: { label: gram?.label ?? 'g', grams: 1 } },
+      defaultPortion: { qty: food.default_qty, unit: food.default_unit, grams: 0 },
+    });
+  }
+  for (const u of units) {
+    const food = result.get(u.food_id);
+    if (food) food.units[u.unit] = { label: u.label, grams: u.grams };
+  }
+  for (const food of result.values()) {
+    const unit = food.units[food.defaultPortion.unit];
+    // A default unit without a weight falls back to 100 g.
+    food.defaultPortion = unit
+      ? { ...food.defaultPortion, grams: food.defaultPortion.qty * unit.grams }
+      : { qty: 100, unit: 'g', grams: 100 };
+  }
+  return result;
+}
+
+/** Starter foods for a meal slot, in order (SPEC §4.1 `slot_suggestions`). */
+export async function getSlotStarters(db: ReadDb, slot: string): Promise<number[]> {
+  const rows = await db.getAllAsync<{ food_id: number }>(
+    `SELECT food_id FROM slot_suggestions WHERE slot = ? ORDER BY position`,
+    [slot],
+  );
+  return rows.map((r) => r.food_id);
+}

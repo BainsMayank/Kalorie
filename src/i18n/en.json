@@ -10,10 +10,42 @@
     "profile": "Profile"
   },
   "today": {
-    "placeholder": "Your day at a glance will show up here."
+    "previousDay": "Previous day",
+    "nextDay": "Next day",
+    "pickDayHint": "Opens a calendar to pick a day",
+    "ring": {
+      "eaten": "eaten",
+      "ofTarget": "of {{target}} kcal",
+      "left": "{{value}} kcal left",
+      "more": "{{value}} kcal more than planned",
+      "atTarget": "Right on your target",
+      "label": "{{eaten}} of {{target}} kcal eaten. {{status}}"
+    },
+    "placeholderTargets": "These are sample targets for now. You'll be able to set your own soon.",
+    "macrosTitle": "Macros",
+    "macroGrams": "{{eaten}} of {{target}} g",
+    "macroShare": "{{value}}%",
+    "macroLabel": "{{macro}}: {{eaten}} of {{target}} g, {{share}}% of calories from macros",
+    "macroLabelNoShare": "{{macro}}: {{eaten}} of {{target}} g",
+    "topTitle": "Top contributors",
+    "topNone": "Nothing yet",
+    "topAmount": "{{grams}} g · {{percent}}%",
+    "topLabel": "{{macro}} from {{name}}: {{grams}} g, {{percent}}% of the day's total",
+    "mealsTitle": "Meals",
+    "empty": {
+      "title": "A fresh page",
+      "today": "Nothing logged yet today. Add what you eat, when you're ready — it takes a few seconds.",
+      "otherDay": "Nothing logged for this day. You can still add meals to it.",
+      "add": "Add food"
+    }
   },
   "log": {
-    "placeholder": "Your meals for today, and past days from a calendar, will show up here."
+    "dayTotal": "Total",
+    "add": "Add",
+    "addTo": "Add food to {{slot}}",
+    "emptySlot": "Nothing logged here yet.",
+    "entryHint": "Opens the entry to change it",
+    "loadProblem": "Your log couldn't be opened. Please close the app and open it again."
   },
   "trends": {
     "placeholder": "Patterns over the week and month will show up here."
@@ -29,7 +61,6 @@
     "moreSoon": "Your goals, account and other options will show up here."
   },
   "search": {
-    "title": "Find a food",
     "placeholder": "Search foods, like dal, roti or dahi",
     "label": "Search foods",
     "clear": "Clear search",
@@ -60,7 +91,8 @@
       "other": "Fats, fibre and sugar",
       "mineral": "Minerals",
       "vitamin": "Vitamins"
-    }
+    },
+    "addToLog": "Add to log"
   },
   "sources": {
     "short": {
@@ -121,5 +153,105 @@
     "protein": "Protein",
     "carbs": "Carbs",
     "fat": "Fat"
+  },
+  "add": {
+    "title": "Add food",
+    "quickAdd": "Quick add",
+    "suggested": "Often at {{slot}}",
+    "lists": "Lists",
+    "recent": "Recent",
+    "favourites": "Favourites",
+    "recentEmpty": "Foods you log will show up here, ready to add again.",
+    "favouritesEmpty": "Tap ☆ on any food to keep it here.",
+    "logPortion": "Add {{portion}} {{name}} to {{slot}}"
+  },
+  "entry": {
+    "editTitle": "Edit entry",
+    "logTo": "Log to {{slot}}",
+    "done": "Done",
+    "delete": "Delete",
+    "forDay": "For {{day}}",
+    "saveProblem": "That didn't save. Please try again."
+  },
+  "slots": {
+    "label": "Meal",
+    "breakfast": "Breakfast",
+    "lunch": "Lunch",
+    "snacks": "Snacks",
+    "dinner": "Dinner"
+  },
+  "sheet": {
+    "close": "Close"
+  },
+  "date": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow",
+    "pick": "Pick a date",
+    "short": "{{weekday}}, {{date}} {{month}}",
+    "withYear": "{{weekday}}, {{date}} {{month}} {{year}}",
+    "weekdays": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    },
+    "months": {
+      "jan": "Jan",
+      "feb": "Feb",
+      "mar": "Mar",
+      "apr": "Apr",
+      "may": "May",
+      "jun": "Jun",
+      "jul": "Jul",
+      "aug": "Aug",
+      "sep": "Sep",
+      "oct": "Oct",
+      "nov": "Nov",
+      "dec": "Dec"
+    }
+  },
+  "time": {
+    "title": "Time",
+    "label": "Time, {{time}}",
+    "am": "{{hour}}:{{minutes}} am",
+    "pm": "{{hour}}:{{minutes}} pm",
+    "hour_am": "{{hour}} am",
+    "hour_pm": "{{hour}} pm",
+    "hour": "Hour",
+    "minutes": "Minutes",
+    "minuteChoice": ":{{minutes}}"
+  },
+  "favourite": {
+    "add": "Add {{name}} to favourites",
+    "remove": "Remove {{name}} from favourites"
+  },
+  "quickAdd": {
+    "title": "Quick add",
+    "editTitle": "Edit quick add",
+    "kcal": "Calories",
+    "label": "Label (optional)",
+    "labelPlaceholder": "Like “Wedding buffet”",
+    "optional": "optional",
+    "defaultName": "Quick add"
+  },
+  "copy": {
+    "meal": "Copy {{slot}}",
+    "day": "Copy day",
+    "mealTitle": "Copy {{slot}} to…",
+    "dayTitle": "Copy this day to…",
+    "dayLabel": "Day",
+    "button_one": "Copy {{count}} item",
+    "button_other": "Copy {{count}} items"
+  },
+  "undo": {
+    "button": "Undo",
+    "logged": "Added {{name}} to {{slot}}",
+    "deleted": "Removed {{name}}",
+    "copied_one": "Copied {{count}} item to {{day}}",
+    "copied_other": "Copied {{count}} items to {{day}}"
   }
 }

@@ -1,18 +1,27 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { SourceBadge, sourceKind } from '@/components';
-import type { FoodDetail, FoodUnitOption } from '@/db/foods';
+import {
+  ChoiceChips,
+  PortionSummary,
+  QuantityStepper,
+  SourceBadge,
+  sourceKind,
+} from '@/components';
+import type { FoodDetail } from '@/db/foods';
+import { EntrySheet } from '@/features/log/EntrySheet';
 import { formatAmount, formatKcal, formatQty } from '@/lib/format';
 import { NUTRIENTS, type NutrientGroup, type NutrientValues } from '@/lib/nutrients';
-import { nutrientsForGrams } from '@/lib/nutrition';
-import { isFreeNumberUnit, quantityForNewUnit, quantityStep } from '@/lib/units';
+import { isFreeNumberUnit } from '@/lib/units';
+import { useLogStore } from '@/stores/log';
 import { useTheme } from '@/theme';
 
+import { FavouriteButton } from './FavouriteButton';
 import { useFood } from './useFood';
+import { usePortion } from './usePortion';
 
 type NutrientUnit = (typeof NUTRIENTS)[number]['unit'];
 
@@ -29,19 +38,13 @@ function formatNutrient(value: number | null, unit: NutrientUnit): string | null
   return unit === 'kcal' ? formatKcal(value) : formatAmount(value);
 }
 
-/** Reads a typed amount: "1.5" or "1,5" → 1.5; anything else → 0. */
-function parseQty(text: string): number {
-  const value = Number(text.replace(',', '.'));
-  return Number.isFinite(value) && value > 0 ? value : 0;
-}
-
 export function FoodDetailScreen() {
   const { t } = useTranslation();
   const { colors, spacing, fontSize } = useTheme();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, slot } = useLocalSearchParams<{ id: string; slot?: string }>();
   const state = useFood(Number(id));
 
-  if (state.status === 'found') return <FoodDetailView food={state.food} />;
+  if (state.status === 'found') return <FoodDetailView food={state.food} slotId={slot} />;
   const message =
     state.status === 'missing'
       ? t('food.notFound')
@@ -57,290 +60,195 @@ export function FoodDetailScreen() {
   );
 }
 
-function FoodDetailView({ food }: { food: FoodDetail }) {
+/** `slotId`: the meal slot the user tapped "+ Add" on, if any. */
+function FoodDetailView({ food, slotId }: { food: FoodDetail; slotId?: string }) {
   const { t } = useTranslation();
-  const { colors, spacing, fontSize, radius } = useTheme();
-
-  const [unit, setUnit] = useState<FoodUnitOption>(
-    () => food.units.find((u) => u.unit === food.defaultUnit) ?? food.units[0],
-  );
-  const [qtyText, setQtyText] = useState(() =>
-    formatQty(unit.unit === food.defaultUnit ? food.defaultQty : 1),
-  );
-  const qty = parseQty(qtyText);
-  const grams = qty * unit.grams;
-  const portion = nutrientsForGrams(food.nutrients, grams);
-
-  const pickUnit = (next: FoodUnitOption) => {
-    setQtyText(formatQty(quantityForNewUnit(next.unit, next.grams, grams)));
-    setUnit(next);
-  };
-  const step = (direction: 1 | -1) => {
-    const size = quantityStep(unit.unit);
-    // Snap to the step size, and never go below one step.
-    const next = Math.max(size, Math.round((qty + direction * size) / size) * size);
-    setQtyText(formatQty(next));
-  };
+  const router = useRouter();
+  const { colors, spacing, fontSize, radius, minTapTarget } = useTheme();
+  const day = useLogStore((state) => state.day);
+  const {
+    unit,
+    qtyText,
+    setQtyText,
+    qty,
+    grams,
+    nutrients: portion,
+    pickUnit,
+    step,
+  } = usePortion(food);
+  const [adding, setAdding] = useState(false);
 
   const portionLabel = t('food.portion', { qty: formatQty(qty), unit: unit.label });
 
   return (
-    <ScrollView
-      style={{ backgroundColor: colors.background }}
-      contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}
-      keyboardShouldPersistTaps="handled"
-    >
-      {/* Name and source */}
-      <Text
-        accessibilityRole="header"
-        style={{ color: colors.text, fontSize: fontSize.title, fontWeight: '600' }}
+    <SafeAreaView edges={['bottom']} style={[styles.flex, { backgroundColor: colors.background }]}>
+      <ScrollView
+        style={{ backgroundColor: colors.background }}
+        contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxl }}
+        keyboardShouldPersistTaps="handled"
       >
-        {food.name}
-      </Text>
-      {food.nameHi && (
-        <Text style={{ color: colors.textSecondary, fontSize: fontSize.body, marginTop: 2 }}>
-          {food.nameHi}
-        </Text>
-      )}
-      <View style={[styles.rowCenter, { marginTop: spacing.sm, gap: spacing.sm }]}>
-        <SourceBadge source={food.source} />
-        <Text style={{ color: colors.textSecondary, fontSize: fontSize.caption }}>
-          {t(`sources.long.${sourceKind(food.source)}`)}
-        </Text>
-      </View>
+        {/* Name, ☆ and source */}
+        <View style={[styles.rowCenter, { gap: spacing.sm }]}>
+          <Text
+            accessibilityRole="header"
+            style={[
+              styles.flex,
+              { color: colors.text, fontSize: fontSize.title, fontWeight: '600' },
+            ]}
+          >
+            {food.name}
+          </Text>
+          <FavouriteButton foodSource="base" foodId={String(food.id)} name={food.name} />
+        </View>
+        {food.nameHi && (
+          <Text style={{ color: colors.textSecondary, fontSize: fontSize.body, marginTop: 2 }}>
+            {food.nameHi}
+          </Text>
+        )}
+        <View style={[styles.rowCenter, { marginTop: spacing.sm, gap: spacing.sm }]}>
+          <SourceBadge source={food.source} />
+          <Text style={{ color: colors.textSecondary, fontSize: fontSize.caption }}>
+            {t(`sources.long.${sourceKind(food.source)}`)}
+          </Text>
+        </View>
 
-      {/* Portion: unit chips and amount */}
-      <View
-        style={[
-          styles.card,
-          {
-            marginTop: spacing.xl,
-            padding: spacing.lg,
-            borderRadius: radius.md,
-            backgroundColor: colors.surface,
-            borderColor: colors.border,
-          },
-        ]}
-      >
-        <UnitChips units={food.units} selected={unit} onSelect={pickUnit} />
-        <QuantityStepper
-          value={qtyText}
-          onChange={setQtyText}
-          onStep={step}
-          freeNumber={isFreeNumberUnit(unit.unit)}
-          unitLabel={unit.label}
-        />
-        {unit.unit !== 'g' && (
+        {/* Portion: unit chips and amount */}
+        <View
+          style={[
+            styles.card,
+            {
+              marginTop: spacing.xl,
+              padding: spacing.lg,
+              borderRadius: radius.md,
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          <ChoiceChips
+            label={t('food.unit')}
+            choices={food.units.map((u) => ({ value: u.unit, label: u.label }))}
+            selected={unit.unit}
+            onSelect={(value) => pickUnit(food.units.find((u) => u.unit === value)!)}
+          />
+          <QuantityStepper
+            value={qtyText}
+            onChange={setQtyText}
+            onStep={step}
+            freeNumber={isFreeNumberUnit(unit.unit)}
+            unitLabel={unit.label}
+          />
+          {unit.unit !== 'g' && (
+            <Text
+              style={{
+                color: colors.textSecondary,
+                fontSize: fontSize.caption,
+                textAlign: 'center',
+                marginTop: spacing.xs,
+              }}
+            >
+              {t('food.grams', { grams: formatAmount(grams) })}
+            </Text>
+          )}
+          <PortionSummary nutrients={portion} />
+        </View>
+
+        {/* Full nutrient table */}
+        <View style={[styles.rowCenter, { marginTop: spacing.xl, paddingHorizontal: spacing.xs }]}>
+          <View style={styles.flex} />
+          <Text
+            style={[
+              styles.valueColumn,
+              { color: colors.textSecondary, fontSize: fontSize.caption },
+            ]}
+            numberOfLines={2}
+          >
+            {portionLabel}
+          </Text>
+          <Text
+            style={[
+              styles.valueColumn,
+              { color: colors.textSecondary, fontSize: fontSize.caption },
+            ]}
+          >
+            {t('food.per100g')}
+          </Text>
+        </View>
+        {SECTIONS.map((section) => (
+          <NutrientSection
+            key={section.title}
+            title={t(`food.groups.${section.title}`)}
+            groups={section.groups}
+            portion={portion}
+            per100g={food.nutrients}
+          />
+        ))}
+
+        <Text
+          style={{ color: colors.textSecondary, fontSize: fontSize.caption, marginTop: spacing.lg }}
+        >
+          {t('food.unknownNote')}
+        </Text>
+        {food.energyEstimated && (
           <Text
             style={{
               color: colors.textSecondary,
               fontSize: fontSize.caption,
-              textAlign: 'center',
               marginTop: spacing.xs,
             }}
           >
-            {t('food.grams', { grams: formatAmount(grams) })}
+            {t('food.energyEstimated')}
           </Text>
         )}
-        <PortionSummary nutrients={portion} />
-      </View>
+      </ScrollView>
 
-      {/* Full nutrient table */}
-      <View style={[styles.rowCenter, { marginTop: spacing.xl, paddingHorizontal: spacing.xs }]}>
-        <View style={styles.flex} />
-        <Text
-          style={[styles.valueColumn, { color: colors.textSecondary, fontSize: fontSize.caption }]}
-          numberOfLines={2}
-        >
-          {portionLabel}
-        </Text>
-        <Text
-          style={[styles.valueColumn, { color: colors.textSecondary, fontSize: fontSize.caption }]}
-        >
-          {t('food.per100g')}
-        </Text>
-      </View>
-      {SECTIONS.map((section) => (
-        <NutrientSection
-          key={section.title}
-          title={t(`food.groups.${section.title}`)}
-          groups={section.groups}
-          portion={portion}
-          per100g={food.nutrients}
-        />
-      ))}
-
-      <Text
-        style={{ color: colors.textSecondary, fontSize: fontSize.caption, marginTop: spacing.lg }}
+      {/* Add to log: opens the sheet with this amount, to pick the meal and time */}
+      <View
+        style={{
+          padding: spacing.lg,
+          paddingBottom: spacing.sm,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          borderTopColor: colors.border,
+          backgroundColor: colors.background,
+        }}
       >
-        {t('food.unknownNote')}
-      </Text>
-      {food.energyEstimated && (
-        <Text
-          style={{ color: colors.textSecondary, fontSize: fontSize.caption, marginTop: spacing.xs }}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: qty <= 0 }}
+          disabled={qty <= 0}
+          onPress={() => setAdding(true)}
+          style={({ pressed }) => [
+            styles.center,
+            {
+              minHeight: minTapTarget,
+              borderRadius: radius.md,
+              backgroundColor: colors.text,
+              opacity: qty <= 0 ? 0.4 : pressed ? 0.8 : 1,
+            },
+          ]}
         >
-          {t('food.energyEstimated')}
-        </Text>
-      )}
-    </ScrollView>
-  );
-}
+          <Text style={{ color: colors.background, fontSize: fontSize.body, fontWeight: '600' }}>
+            {t('food.addToLog')}
+          </Text>
+        </Pressable>
+      </View>
 
-function UnitChips({
-  units,
-  selected,
-  onSelect,
-}: {
-  units: FoodUnitOption[];
-  selected: FoodUnitOption;
-  onSelect: (unit: FoodUnitOption) => void;
-}) {
-  const { t } = useTranslation();
-  const { colors, spacing, fontSize, radius, minTapTarget } = useTheme();
-  return (
-    <View
-      accessibilityRole="radiogroup"
-      accessibilityLabel={t('food.unit')}
-      style={[styles.wrap, { gap: spacing.sm }]}
-    >
-      {units.map((u) => {
-        const isSelected = u.unit === selected.unit;
-        return (
-          <Pressable
-            key={u.unit}
-            accessibilityRole="radio"
-            accessibilityState={{ checked: isSelected }}
-            accessibilityLabel={u.label}
-            onPress={() => onSelect(u)}
-            style={[
-              styles.center,
-              {
-                minHeight: minTapTarget,
-                paddingHorizontal: spacing.lg,
-                borderRadius: radius.lg * 2,
-                borderWidth: 1,
-                borderColor: isSelected ? colors.text : colors.border,
-                backgroundColor: isSelected ? colors.text : colors.surface,
-              },
-            ]}
-          >
-            <Text
-              style={{
-                color: isSelected ? colors.background : colors.text,
-                fontSize: fontSize.body,
-              }}
-            >
-              {u.label}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
-function QuantityStepper({
-  value,
-  onChange,
-  onStep,
-  freeNumber,
-  unitLabel,
-}: {
-  value: string;
-  onChange: (text: string) => void;
-  onStep: (direction: 1 | -1) => void;
-  freeNumber: boolean;
-  unitLabel: string;
-}) {
-  const { t } = useTranslation();
-  const { colors, spacing, fontSize, radius, minTapTarget } = useTheme();
-  const button = (direction: 1 | -1) => (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={t(direction === 1 ? 'food.increase' : 'food.decrease')}
-      onPress={() => onStep(direction)}
-      style={({ pressed }) => [
-        styles.center,
-        {
-          width: minTapTarget,
-          height: minTapTarget,
-          borderRadius: minTapTarget / 2,
-          backgroundColor: pressed ? colors.border : colors.surfaceMuted,
-        },
-      ]}
-    >
-      <Ionicons name={direction === 1 ? 'add' : 'remove'} size={24} color={colors.text} />
-    </Pressable>
-  );
-
-  return (
-    <View
-      style={[
-        styles.rowCenter,
-        { justifyContent: 'center', marginTop: spacing.lg, gap: spacing.md },
-      ]}
-    >
-      {button(-1)}
-      <View style={[styles.rowCenter, { gap: spacing.sm }]}>
-        <TextInput
-          value={value}
-          onChangeText={onChange}
-          keyboardType="decimal-pad"
-          selectTextOnFocus
-          accessibilityLabel={t('food.amount')}
-          style={{
-            minWidth: freeNumber ? 88 : 64,
-            minHeight: minTapTarget,
-            textAlign: 'center',
-            color: colors.text,
-            fontSize: fontSize.title,
-            fontWeight: '600',
-            borderRadius: radius.sm,
-            borderWidth: StyleSheet.hairlineWidth,
-            borderColor: colors.border,
-            paddingHorizontal: spacing.sm,
+      {adding && (
+        <EntrySheet
+          mode="add"
+          food={food}
+          day={day}
+          slotId={slotId}
+          start={{ unit: unit.unit, qty }}
+          onClose={() => setAdding(false)}
+          onSaved={() => {
+            setAdding(false);
+            // Back to the search, ready for the next food ("Add more" flow, SPEC §2.4).
+            if (router.canGoBack()) router.back();
           }}
         />
-        <Text style={{ color: colors.text, fontSize: fontSize.body }}>{unitLabel}</Text>
-      </View>
-      {button(1)}
-    </View>
-  );
-}
-
-/** Big kcal number and protein / carbs / fat for the chosen portion. */
-function PortionSummary({ nutrients }: { nutrients: NutrientValues }) {
-  const { t } = useTranslation();
-  const { colors, spacing, fontSize } = useTheme();
-  const unknown = t('food.unknown');
-  const macros = [
-    { key: 'protein', value: nutrients.protein_g, color: colors.protein },
-    { key: 'carbs', value: nutrients.carb_g, color: colors.carbs },
-    { key: 'fat', value: nutrients.fat_g, color: colors.fat },
-  ] as const;
-
-  return (
-    <View style={{ marginTop: spacing.lg, alignItems: 'center' }}>
-      <Text style={{ color: colors.text, fontSize: fontSize.headline, fontWeight: '700' }}>
-        {t('food.kcal', { value: formatKcal(nutrients.energy_kcal) ?? unknown })}
-      </Text>
-      <View style={[styles.rowCenter, { marginTop: spacing.sm, gap: spacing.lg }]}>
-        {macros.map((m) => (
-          <View key={m.key} style={[styles.rowCenter, { gap: spacing.xs }]}>
-            <View style={[styles.dot, { backgroundColor: m.color }]} />
-            <Text style={{ color: colors.textSecondary, fontSize: fontSize.caption }}>
-              {t(`macros.${m.key}`)}{' '}
-              <Text style={{ color: colors.text, fontWeight: '600' }}>
-                {t('food.amountWithUnit', {
-                  value: formatAmount(m.value) ?? unknown,
-                  unit: t('nutrientUnits.g'),
-                })}
-              </Text>
-            </Text>
-          </View>
-        ))}
-      </View>
-    </View>
+      )}
+    </SafeAreaView>
   );
 }
 
@@ -414,8 +322,6 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { alignItems: 'center', justifyContent: 'center' },
   rowCenter: { flexDirection: 'row', alignItems: 'center' },
-  wrap: { flexDirection: 'row', flexWrap: 'wrap' },
   card: { borderWidth: StyleSheet.hairlineWidth },
   valueColumn: { width: 96, textAlign: 'right' },
-  dot: { width: 8, height: 8, borderRadius: 4 },
 });

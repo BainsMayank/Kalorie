@@ -9,6 +9,8 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { getFoodsDb } from '@/db/foods';
 import { getUserDb } from '@/db/user/client';
+import { useFavouritesStore } from '@/stores/favourites';
+import { useLogStore } from '@/stores/log';
 import { useSettingsStore } from '@/stores/settings';
 import { useTheme } from '@/theme';
 
@@ -19,20 +21,24 @@ export default function RootLayout() {
   const theme = useTheme();
   const { colors, scheme } = theme;
 
-  // 1. Create or update the tables in user.db. 2. Read the saved settings.
+  // 1. Create or update the tables in user.db. 2. Read settings, meal slots and favourites.
   const migration = useMigrations(getUserDb(), migrations);
   const settingsLoaded = useSettingsStore((state) => state.loaded);
   const loadSettings = useSettingsStore((state) => state.load);
+  const slotsLoaded = useLogStore((state) => state.loaded);
+  const loadSlots = useLogStore((state) => state.load);
+  const favouritesLoaded = useFavouritesStore((state) => state.loaded);
+  const loadFavourites = useFavouritesStore((state) => state.load);
   const [loadFailed, setLoadFailed] = useState(false);
 
   useEffect(() => {
     if (migration.success) {
-      loadSettings().catch(() => setLoadFailed(true));
+      Promise.all([loadSettings(), loadSlots(), loadFavourites()]).catch(() => setLoadFailed(true));
       // 3. Copy foods.db on first launch and open it, in the background. Search waits for it
       // and shows its own message if it fails, so the rest of the app still works.
       getFoodsDb().catch(() => {});
     }
-  }, [migration.success, loadSettings]);
+  }, [migration.success, loadSettings, loadSlots, loadFavourites]);
 
   // Colours for the tab bar and other navigation parts.
   const navTheme = useMemo<NavTheme>(() => {
@@ -60,7 +66,7 @@ export default function RootLayout() {
         </Text>
       </View>
     );
-  } else if (!migration.success || !settingsLoaded) {
+  } else if (!migration.success || !settingsLoaded || !slotsLoaded || !favouritesLoaded) {
     content = (
       <View style={[styles.center, { backgroundColor: colors.background }]}>
         <ActivityIndicator color={colors.textSecondary} accessibilityLabel={t('app.loading')} />
@@ -69,6 +75,14 @@ export default function RootLayout() {
   } else {
     content = (
       <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen
+          name="add/index"
+          options={{
+            headerShown: true,
+            title: t('add.title'),
+            headerBackButtonDisplayMode: 'minimal',
+          }}
+        />
         <Stack.Screen
           name="food/[id]"
           options={{

@@ -9,7 +9,7 @@ Expo latest SDK + TypeScript (strict) · expo-router · expo-sqlite + Drizzle OR
 react-native-gifted-charts · react-native-calendars · @shopify/flash-list · expo-camera ·
 expo-image-picker · expo-notifications (local only) · i18next + expo-localization (English only) ·
 jest-expo + React Native Testing Library. Supabase (Stage 11) and EAS Build come later.
-Also approved: react-i18next, expo-font (needed by @expo/vector-icons), expo-file-system, expo-sharing, expo-asset, expo-haptics, expo-secure-store (Stage 12);
+Also approved: react-i18next, expo-font (needed by @expo/vector-icons), react-native-svg (needed by react-native-gifted-charts), expo-file-system, expo-sharing, expo-asset, expo-haptics, expo-secure-store (Stage 12);
 dev-only: xlsx (0.20.3 from cdn.sheetjs.com), csv-parse, tsx, drizzle-kit,
 @ifct2017/compositions (pinned 2.0.9 — MIT; never `ifct2017` ≥ 2.1, it is AGPL), babel-plugin-inline-import,
 eslint + eslint-config-expo, prettier + eslint-config-prettier.
