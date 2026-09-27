@@ -7,6 +7,7 @@ import {
   emptyNutrients,
   roundTo,
 } from '../../src/lib/nutrients';
+import { absorbedFryingOilGrams, per100WithoutPart } from '../../src/lib/oil';
 import { normalizeText } from '../../src/lib/search';
 import type { CategoryUnits, DensityRule } from './curated';
 import { densityFor } from './food-units';
@@ -23,7 +24,10 @@ export interface RecipeRow {
   position: number;
   ingredientFoodId: number | null;
   name: string;
-  /** 0 when INDB gives no usable amount (a few "colour" rows). */
+  /**
+   * Grams in the dish as eaten: 0 when INDB gives no usable amount (a few "colour" rows) or the
+   * water never reaches the plate; for frying oil, only the part the food soaks up.
+   */
   grams: number;
   isFat: boolean;
   /**
@@ -49,6 +53,13 @@ export interface RecipeStats {
   energyWithin5pct: number;
   /** Dishes furthest from INDB's own kcal (name, ratio), for a look by hand. */
   energyOutliers: [string, number][];
+  /** Dishes whose frying oil was cut to what the food soaks up, and grams of oil taken out. */
+  fryingFixed: number;
+  fryingOilRemovedG: number;
+  /** Dishes with egg-boiling or steaming water taken out. */
+  drainedFixed: number;
+  /** Fixed recipe weight ÷ listed weight, per food id — INDB servings shrink by this much. */
+  servingScale: Map<number, number>;
 }
 
 /** Finds the foods.db row for a ref, following refs that were removed as duplicates. */
@@ -85,6 +96,10 @@ export function attachRecipes(
     energyChecked: 0,
     energyWithin5pct: 0,
     energyOutliers: [],
+    fryingFixed: 0,
+    fryingOilRemovedG: 0,
+    drainedFixed: 0,
+    servingScale: new Map(),
   };
   const unlinked = new Map<string, number>();
   const outliers: [string, number][] = [];
@@ -99,6 +114,8 @@ export function attachRecipes(
     let knownGrams = 0;
     let solidGrams = 0;
     let rawGrams = 0;
+    const frying: RecipeRow[] = [];
+    const drained: RecipeRow[] = [];
     const recipe: RecipeRow[] = raw.map((ing) => {
       stats.rows++;
       const curatedRef = ingredientMap.get(ing.code);
@@ -142,7 +159,7 @@ export function attachRecipes(
         knownKcal += (g / 100) * nutrients.energy_kcal;
         if (!isZero) knownGrams += g;
       }
-      return {
+      const row: RecipeRow = {
         position: ing.position,
         ingredientFoodId: food?.id ?? null,
         name: ing.name,
@@ -152,13 +169,15 @@ export function attachRecipes(
         // zero, so it doesn't look "unknown"); everything else is looked up by food id.
         nutrients: isFat || isZero ? nutrients : emptyNutrients(),
       };
+      if (isFat && ing.use === 'frying') frying.push(row);
+      // Only water is taken out: it has no nutrients, so nothing else changes.
+      if (isZero && ing.use === 'discarded') drained.push(row);
+      return row;
     });
 
     dish.recipe = recipe;
     if (recipe.some((r) => r.isFat)) stats.dishesWithFat++;
-    // INDB's per-100 g values are per 100 g of the raw recipe, so that is the recipe weight the
-    // oil adjuster must use to stay consistent with them.
-    dish.yieldG = rawGrams > 0 ? Math.round(rawGrams) : null;
+    // The check compares with INDB as published, so it runs before the fixes below.
     const ratio = energyCheckRatio({
       knownKcal,
       knownGrams,
@@ -171,9 +190,54 @@ export function attachRecipes(
       if (Math.abs(ratio - 1) <= 0.05) stats.energyWithin5pct++;
       else outliers.push([dish.name, ratio]);
     }
+
+    const removedG = fixRecipe(dish, rawGrams, frying, drained, stats);
+    // INDB's per-100 g values are per 100 g of the raw recipe, so that (minus what the fixes
+    // took out) is the recipe weight the oil adjuster must use to stay consistent with them.
+    dish.yieldG = rawGrams > 0 ? Math.round(rawGrams - removedG) : null;
+    if (removedG > 0) stats.servingScale.set(dish.id, (rawGrams - removedG) / rawGrams);
   }
 
   stats.unlinkedCodes = [...unlinked.entries()].sort((a, b) => b[1] - a[1]);
   stats.energyOutliers = outliers.sort((a, b) => Math.abs(b[1] - 1) - Math.abs(a[1] - 1));
   return stats;
+}
+
+/**
+ * INDB counts every ingredient as eaten. Two kinds aren't (SPEC §3):
+ * - frying oil ("for deep frying", often 2 cups): only 15% of the other ingredients' weight
+ *   stays in the food, the rest is left in the pan;
+ * - water that never reaches the plate (boiling an egg, the steamer's water).
+ * Takes them out of the dish's per-100 g values and the recipe rows, and returns the grams
+ * taken out. Oil nutrients the database doesn't know count as 0 (nothing is taken out).
+ */
+function fixRecipe(
+  dish: FoodRow,
+  rawGrams: number,
+  frying: RecipeRow[],
+  drained: RecipeRow[],
+  stats: RecipeStats,
+): number {
+  const fryingG = frying.reduce((n, r) => n + r.grams, 0);
+  const drainedG = drained.reduce((n, r) => n + r.grams, 0);
+  const keptOilG = absorbedFryingOilGrams(fryingG, rawGrams - fryingG - drainedG);
+  const oilOutG = fryingG - keptOilG;
+  const removedG = oilOutG + drainedG;
+  if (removedG <= 0) return 0;
+
+  const keep = fryingG > 0 ? keptOilG / fryingG : 1;
+  for (const k of NUTRIENT_KEYS) {
+    const oilOut = frying.reduce((n, r) => n + (r.grams / 100) * (r.nutrients[k] ?? 0), 0);
+    const value = per100WithoutPart(dish.nutrients[k], rawGrams, removedG, (1 - keep) * oilOut);
+    dish.nutrients[k] = roundTo(value, 3);
+  }
+  for (const r of frying) r.grams = roundTo(r.grams * keep, 2) ?? 0;
+  for (const r of drained) r.grams = 0;
+
+  if (oilOutG > 0) {
+    stats.fryingFixed++;
+    stats.fryingOilRemovedG += oilOutG;
+  }
+  if (drainedG > 0) stats.drainedFixed++;
+  return removedG;
 }

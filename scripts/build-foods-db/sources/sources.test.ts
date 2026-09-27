@@ -1,6 +1,18 @@
 import { ifctFood, isNumberedVariety, unanalysedColumns } from './ifct';
-import { indbFood, indbServing, indbServingUnit } from './indb';
-import { categoryFromCode, energyCheckRatio, isFatIngredient, recipeGrams } from './indb-recipes';
+import {
+  believableServing,
+  fixedIndbServing,
+  indbFood,
+  indbServing,
+  indbServingUnit,
+} from './indb';
+import {
+  categoryFromCode,
+  energyCheckRatio,
+  ingredientUse,
+  isFatIngredient,
+  recipeGrams,
+} from './indb-recipes';
 import { usdaNutrients, usdaPortionUnit } from './usda';
 
 describe('INDB conversion', () => {
@@ -62,9 +74,37 @@ describe('INDB conversion', () => {
   });
 
   it('drops servings that are not a real portion', () => {
-    expect(indbServing({ ...tea, unit_serving_energy_kcal: 16.14 * 14 })).toBeNull(); // 1,400 g
     expect(indbServing({ ...tea, servings_unit: 'ml' })).toBeNull();
     expect(indbServing({ ...tea, servings_unit: '' })).toBeNull();
+  });
+
+  it('believes a normal serving, but not a whole recipe, a huge piece or a jug-sized cup', () => {
+    const vada = { unit: 'piece', label: 'vada', grams: 64 };
+    expect(believableServing(vada, 275)).toBe(true); // 176 kcal
+    expect(believableServing({ ...vada, grams: 172 }, 668)).toBe(false); // 1,150 kcal
+    expect(believableServing({ unit: 'bowl', label: 'bowl', grams: 366 }, 251)).toBe(false); // 919 kcal
+    expect(believableServing({ unit: 'serving', label: 'tea cup', grams: 210.5 }, 16)).toBe(true);
+    expect(believableServing({ unit: 'serving', label: 'tea cup', grams: 450 }, 23)).toBe(false);
+    expect(believableServing({ unit: 'serving', label: 'tea cup', grams: 1400 }, null)).toBe(false);
+    expect(believableServing({ unit: 'tsp', label: 'tsp', grams: 3 }, 100)).toBe(false); // < 5 g
+  });
+
+  it('shrinks the serving with its recipe, or uses a piece count from indb_servings.csv', () => {
+    const vada = { unit: 'piece', label: 'vada', grams: 172 };
+    // The recipe lost 62% of its weight (frying oil): 172 g → 65.4 g
+    expect(fixedIndbServing(vada, 275, 0.38)).toEqual({ ...vada, grams: 65.4 });
+    // Still 1,150 kcal if nothing changed → dropped
+    expect(fixedIndbServing(vada, 668, 1)).toBeNull();
+    // Nothing to change → the same serving back
+    const tea = { unit: 'serving', label: 'tea cup', grams: 210.5 };
+    expect(fixedIndbServing(tea, 16, 1)).toBe(tea);
+    // 529 g of gulab jamun (syrup included) in 12 pieces
+    const pieces = { pieces: 12, label: 'gulab jamun', yieldG: 529 };
+    expect(fixedIndbServing(null, 365, 1, pieces)).toEqual({
+      unit: 'piece',
+      label: 'gulab jamun',
+      grams: 44.1,
+    });
   });
 
   it('maps serving names to unit keys', () => {
@@ -239,6 +279,17 @@ describe('INDB recipes', () => {
     expect(categoryFromCode('T508')).toBe('oil_fat');
     expect(categoryFromCode('A015')).toBe('cereal');
     expect(categoryFromCode('')).toBe('misc');
+  });
+
+  it('reads frying oil and discarded water from INDB’s own wording', () => {
+    expect(ingredientUse('for deep frying', 'Oil')).toBe('frying');
+    expect(ingredientUse('', 'Oil (for frying)')).toBe('frying');
+    expect(ingredientUse('for fryng', 'Oil')).toBe('frying'); // INDB's typo
+    expect(ingredientUse('enough to immerse egg', 'Water')).toBe('discarded');
+    expect(ingredientUse('2 to 3', 'Water for steaming')).toBe('discarded');
+    expect(ingredientUse('For soaking', 'Water')).toBe('eaten'); // sago soaks it up
+    expect(ingredientUse('1', 'Oil')).toBe('eaten');
+    expect(ingredientUse('2', 'Fryums')).toBe('eaten');
   });
 
   it('flags cooking fats but not peanut butter or buttermilk', () => {

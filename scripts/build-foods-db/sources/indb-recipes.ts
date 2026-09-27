@@ -16,6 +16,26 @@ export interface RawIngredient {
   code: string;
   amount: number | null;
   unit: string;
+  /** What the recipe does with it, from INDB's own wording ("for frying", "for soaking"). */
+  use: IngredientUse;
+}
+
+/**
+ * `eaten`: part of the dish. `frying`: oil for deep frying — most of it stays in the pan.
+ * `discarded`: water that never reaches the plate (boiling an egg, the steamer's water).
+ * Soaking water is not discarded: sago soaks it up and dates are ground with it.
+ */
+export type IngredientUse = 'eaten' | 'frying' | 'discarded';
+
+/**
+ * Reads INDB's original amount and name ("for deep frying", "Oil (for frying)",
+ * "enough to immerse egg", "Water for steaming"). The converted amount ("2 C") loses this.
+ */
+export function ingredientUse(amountOrg: string, nameOrg: string): IngredientUse {
+  const text = `${amountOrg} ${nameOrg}`.toLowerCase();
+  if (/\bfr(y|ying|yng)\b/.test(text)) return 'frying';
+  if (/\b(immerse|steaming)\b/.test(text)) return 'discarded';
+  return 'eaten';
 }
 
 /** Millilitres in one recipe measure. The cup matches the app's cup (SPEC §4.1: 240 ml). */
@@ -133,6 +153,7 @@ export function readIndbRecipes(path: string): Map<string, RawIngredient[]> {
       code: String(r.food_code ?? '').trim(),
       amount: r.amount === null || r.amount === '' || !Number.isFinite(amount) ? null : amount,
       unit: String(r.unit ?? '').trim(),
+      use: ingredientUse(String(r.amount_org ?? ''), String(r.ingredient_name_org ?? '')),
     });
     recipes.set(recipeCode, list);
   }

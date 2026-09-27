@@ -1,0 +1,16 @@
+# How many pieces an INDB recipe makes, where INDB's own count is clearly off (it says the
+# gulab jamun recipe makes 2 pieces of 300 g). The piece weight is worked out in the build:
+# recipe weight (after the frying-oil and drained-water fixes) ÷ pieces, so 1 piece carries its
+# share of everything in the recipe, syrup included, and its kcal stay right.
+# ref:    "indb:<food_code>" · name: the INDB name, checked by the build
+# pieces: pieces the whole recipe makes · label: word for 1 piece ("gulab jamun")
+# Counts: gulab jamun ~10 g of dough each; chhena sweets ~5 from 250 ml milk (rajbhog is bigger).
+ref,name,pieces,label
+indb:ASC348,Gulab Jamun with khoya,12,gulab jamun
+indb:BFP386,Gulab jamun with milk powder,8,gulab jamun
+indb:BFP392,Rasgulla,5,rasgulla
+indb:BFP393,Rasmalai,5,rasmalai
+indb:BFP388,Chum chum,5,chum chum
+indb:BFP389,Dil bahar,5,dil bahar
+indb:BFP390,Rasbhari,5,rasbhari
+indb:BFP391,Rajbogh,4,rajbhog

@@ -37,7 +37,10 @@ export interface FoodRow extends CompletenessFlags {
   units: (UnitRow & { isDefault: boolean })[];
   synonyms: Synonym[];
   searchText: string;
-  /** Estimated cooked weight of the whole recipe (INDB dishes), or null. */
+  /**
+   * Weight of the whole recipe that the per-100 g values refer to (INDB dishes: the raw
+   * ingredients, minus frying oil left in the pan and discarded water), or null.
+   */
   yieldG: number | null;
   /** INDB recipe ingredients, or empty. */
   recipe: RecipeRow[];

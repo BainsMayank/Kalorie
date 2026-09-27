@@ -18,6 +18,7 @@ import {
   loadIngredientMap,
   loadRda,
   loadSearchPins,
+  loadServingOverrides,
   loadSynonymGroups,
   loadUnitRules,
 } from './curated';
@@ -25,6 +26,7 @@ import { dedupe, dedupeKey } from './dedupe';
 import { buildFoodUnits } from './food-units';
 import { stableFoodId } from './ids';
 import { attachRecipes } from './recipes';
+import type { IngredientUse, RawIngredient } from './sources/indb-recipes';
 import { containsPhrase, ruleMatches } from './rules';
 import { searchText, synonymsFor } from './synonyms';
 import type { FoodRecord } from './types';
@@ -60,6 +62,7 @@ describe('curated files', () => {
     expect(loadCategoryOverrides(categories)).toBeInstanceOf(Map);
     expect(loadDuplicateDecisions()).toBeInstanceOf(Array);
     expect(loadSearchPins().length).toBeGreaterThan(5);
+    expect(loadServingOverrides().size).toBeGreaterThan(5);
     expect(loadRda()).toHaveLength(48);
   });
 
@@ -366,20 +369,21 @@ describe('recipes', () => {
     ['ifct:T012', oil],
     ['ifct:B013', lentil],
   ]);
+  const ing = (
+    position: number,
+    name: string,
+    code: string,
+    amount: number,
+    unit: string,
+    use: IngredientUse = 'eaten',
+  ): RawIngredient => ({ recipeCode: 'D1', position, name, code, amount, unit, use });
   const recipe = new Map([
     [
       'D1',
       [
-        { recipeCode: 'D1', position: 1, name: 'Lentil dal', code: 'B013', amount: 50, unit: 'g' },
-        { recipeCode: 'D1', position: 2, name: 'Water', code: 'K505', amount: 1, unit: 'C' },
-        {
-          recipeCode: 'D1',
-          position: 3,
-          name: 'Oil, sunflower',
-          code: 'T508',
-          amount: 1,
-          unit: 'tsp',
-        },
+        ing(1, 'Lentil dal', 'B013', 50, 'g'),
+        ing(2, 'Water', 'K505', 1, 'C'),
+        ing(3, 'Oil, sunflower', 'T508', 1, 'tsp'),
       ],
     ],
   ]);
@@ -413,6 +417,36 @@ describe('recipes', () => {
       unlinked: 0,
       dishesWithFat: 1,
     });
+  });
+
+  it('keeps only the frying oil the food soaks up (15% of the rest) and fixes per 100 g', () => {
+    // 100 g lentil batter (350 kcal) fried in 1 cup oil (220.8 g, 1987 kcal): INDB says
+    // 2337 kcal in 320.8 g = 728.5 kcal/100 g
+    const d = row({ sourceCode: 'D1', nutrients: { ...emptyNutrients(), energy_kcal: 728.5 } });
+    const fried = new Map([
+      ['D1', [ing(1, 'Lentil dal', 'B013', 100, 'g'), ing(2, 'Oil', 'T508', 1, 'C', 'frying')]],
+    ]);
+    const stats = attachRecipes([d], fried, map, (r) => foods.get(r), densityRules, categories);
+    // 15 g of oil stays: 350 + 135 = 485 kcal in 115 g
+    expect(d.recipe[1].grams).toBeCloseTo(15);
+    expect(d.yieldG).toBe(115);
+    expect(d.nutrients.energy_kcal).toBeCloseTo(421.7, 0);
+    expect(stats.servingScale.get(d.id)).toBeCloseTo(115 / 320.8);
+    expect(stats).toMatchObject({ fryingFixed: 1, drainedFixed: 0 });
+  });
+
+  it('takes out water that never reaches the plate (boiling an egg)', () => {
+    const d = row({ sourceCode: 'D1', nutrients: { ...emptyNutrients(), energy_kcal: 50 } });
+    const boiled = new Map([
+      [
+        'D1',
+        [ing(1, 'Lentil dal', 'B013', 50, 'g'), ing(2, 'Water', 'K505', 100, 'ml', 'discarded')],
+      ],
+    ]);
+    attachRecipes([d], boiled, map, (r) => foods.get(r), densityRules, categories);
+    expect(d.recipe[1].grams).toBe(0);
+    expect(d.yieldG).toBe(50);
+    expect(d.nutrients.energy_kcal).toBeCloseTo(150); // 75 kcal in 50 g
   });
 
   it('refuses to build when a fat ingredient is not linked', () => {

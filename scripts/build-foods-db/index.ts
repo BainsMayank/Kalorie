@@ -15,6 +15,7 @@ import {
   loadIngredientMap,
   loadRda,
   loadSearchPins,
+  loadServingOverrides,
   loadSynonymGroups,
   loadUnitRules,
 } from './curated';
@@ -22,10 +23,10 @@ import { dedupe } from './dedupe';
 import { buildFoodUnits } from './food-units';
 import { stableFoodId } from './ids';
 import { attachRecipes } from './recipes';
-import { printReport } from './report';
+import { type ServingSummary, printReport } from './report';
 import { DB_VERSION } from './schema';
 import { readIfct } from './sources/ifct';
-import { readIndb } from './sources/indb';
+import { fixedIndbServing, readIndb } from './sources/indb';
 import { readIndbRecipes } from './sources/indb-recipes';
 import { readUsda } from './sources/usda';
 import { searchText, synonymsFor } from './synonyms';
@@ -83,6 +84,14 @@ function main(): void {
   }
 
   const deduped = dedupe(all, loadDuplicateDecisions());
+  const unitsFor = (food: FoodRecord) =>
+    buildFoodUnits(
+      food,
+      normalizeText(food.name),
+      categoryUnits.get(food.category),
+      unitRules,
+      densityRules,
+    );
 
   const ids = new Map<number, string>();
   const rows: FoodRow[] = deduped.kept.map((food) => {
@@ -92,13 +101,7 @@ function main(): void {
     ids.set(id, ref);
 
     const normalizedName = normalizeText(food.name);
-    const units = buildFoodUnits(
-      food,
-      normalizedName,
-      categoryUnits.get(food.category),
-      unitRules,
-      densityRules,
-    );
+    const units = unitsFor(food);
     const synonyms = synonymsFor(food, normalizedName, synonymGroups);
     const nutrients = { ...food.nutrients };
     for (const k of NUTRIENT_KEYS) nutrients[k] = roundTo(nutrients[k], 3);
@@ -140,6 +143,8 @@ function main(): void {
     densityRules,
     categoryUnits,
   );
+
+  const servings = fixIndbServings(rows, deduped.kept, recipeStats.servingScale, unitsFor);
 
   const pins = loadSearchPins().flatMap((pin) => {
     const row = rowByRef.get(pin.ref) ?? rowByRef.get(keptRefOf.get(pin.ref) ?? '');
@@ -192,12 +197,71 @@ function main(): void {
     ],
     dedupe: deduped,
     recipes: recipeStats,
+    servings,
     foods: rows,
     records: new Map(all.map((f) => [refOf(f), f])),
     synonymTermsCurated: synonymGroups.reduce((n, g) => n + g.terms.length, 0),
     fileSizeBytes: statSync(OUTPUT).size,
     outputPath: 'assets/db/foods.db',
   });
+}
+
+/**
+ * INDB servings after the recipe fixes: resized with the recipe, piece counts from
+ * indb_servings.csv, and dropped when still not believable (SPEC §3). Rebuilds the units of
+ * every food whose serving changed.
+ */
+function fixIndbServings(
+  rows: FoodRow[],
+  records: FoodRecord[],
+  servingScale: Map<number, number>,
+  unitsFor: (food: FoodRecord) => ReturnType<typeof buildFoodUnits>,
+): ServingSummary {
+  const overrides = loadServingOverrides();
+  const recordByRef = new Map(records.map((f) => [refOf(f), f]));
+  const summary: ServingSummary = { resized: 0, overridden: 0, dropped: [] };
+  const used = new Set<string>();
+
+  for (const row of rows) {
+    if (row.source !== 'indb') continue;
+    const ref = `indb:${row.sourceCode}`;
+    const record = recordByRef.get(ref);
+    if (!record) continue;
+    const override = overrides.get(ref);
+    if (override && override.name !== row.name) {
+      throw new Error(
+        `data/curated/indb_servings.csv: ${ref} is "${row.name}", not "${override.name}"`,
+      );
+    }
+    const kcal = row.nutrients.energy_kcal;
+    const scale = servingScale.get(row.id) ?? 1;
+    const pieces = override && row.yieldG ? { ...override, yieldG: row.yieldG } : undefined;
+    const serving = fixedIndbServing(record.serving, kcal, scale, pieces);
+    if (override) {
+      if (!serving) {
+        throw new Error(`data/curated/indb_servings.csv: ${ref} gives an unbelievable piece`);
+      }
+      used.add(ref);
+      summary.overridden++;
+    } else if (serving && serving !== record.serving) summary.resized++;
+    if (record.serving && !serving) {
+      const g = record.serving.grams;
+      summary.dropped.push(
+        `${row.name} (1 ${record.serving.label} = ${Math.round(g * scale)} g, ` +
+          `${Math.round(((g * scale) / 100) * (kcal ?? 0))} kcal)`,
+      );
+    }
+    if (serving === record.serving) continue;
+    const units = unitsFor({ ...record, serving });
+    row.units = units.units;
+    row.defaultUnit = units.defaultUnit;
+    row.defaultQty = units.defaultQty;
+  }
+
+  for (const ref of overrides.keys()) {
+    if (!used.has(ref)) throw new Error(`data/curated/indb_servings.csv: no INDB food ${ref}`);
+  }
+  return summary;
 }
 
 main();

@@ -40,6 +40,7 @@ closing the app, and `npm test` passes.
 - [x] Create `data/curated/synonyms.csv` (591 terms in 157 groups: dal/daal/dhal, bhindi/okra/lady finger, dahi/curd/yogurt, …) — plus IFCT Hindi/regional names and INDB Hindi names automatically
 - [x] Create `data/curated/unit_weights.csv` (roti S/M/L, piece weights for egg, banana, …), `category_units.csv` (units + density per category), `densities.csv`, and `unit_defaults`
 - [x] Create `data/curated/rda_icmr_nin_2020.csv` (starting values from SPEC §3.1)
+- [x] Fix INDB outliers (2026-09-27): frying oil cut to the 15% the food soaks up (126 dishes — dahi vada 1,150 → 176 kcal per vada), egg-boiling/steaming water taken out (boiled egg 45 → 132 kcal/100 g), servings shrink with their recipe, piece counts for gulab jamun + chhena sweets in `data/curated/indb_servings.csv`, unbelievable servings dropped (105, listed in the build report)
 - [ ] Create `data/curated/thalis.csv` (6 starters) and `slot_suggestions.csv` (tables exist in foods.db, empty for now)
 - [x] Build `foods_fts` with phonetic keys (SPEC §5.1) and the `meta` table
 - [x] `npm run build:foods` writes `assets/db/foods.db`; print a summary (counts per source, foods with no energy, missing macros, 10 spot checks)
@@ -118,6 +119,7 @@ hand works.
 - [ ] `src/lib/oil.ts`: recipe-based and no-recipe adjuster (SPEC §5.5) + tests (dal tadka less/normal/more; fat can't go below zero) — *recipe-based `oilAdjustedPer100` done in Stage 2a (used by the build report); no-recipe path still to do*
 - [ ] Oil/ghee Less · Normal · More on the portion sheet for eligible foods; stored as `oil_level`
 - [ ] Recipe builder (ingredients, qty/unit, fat flag, cooked weight, servings) → saved as a food with per-100 g values
+- [ ] Cooked weights for INDB dishes that lose water while cooking (INDB's per-100 g is per raw weight): dry fried snacks (sev, banana chips, murukku), chhena sweets (the milk's whey), dals; also mark the unlabelled frying oil in Fish orly and Mango malpua
 - [ ] Custom food create/edit with custom units
 - [ ] Built-in thalis + *My thalis*; log selected items to a slot in one tap (one `batch_id`, one Undo)
 - [ ] *Save as thali* from a meal card

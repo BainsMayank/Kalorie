@@ -256,6 +256,20 @@ Build-time conversions:
   is stored as `NULL`.
 - INDB fatty acids are in mg → ÷ 1000. INDB's `vita_ug` is retinol only, so
   `vit_a_ug = vita + carotenoids / 12`. INDB serving grams = serving kcal ÷ kcal per 100 g × 100.
+- INDB recipe fixes (INDB counts every ingredient as eaten, per 100 g of the raw recipe):
+  - **Frying oil** (INDB writes "for frying" / "for deep frying"; often 2 cups): only
+    `min(listed, 0.15 × other ingredients' grams)` stays in the food (`FRYING_OIL_ABSORBED`,
+    `src/lib/oil.ts`); the rest, with its nutrients, comes out of the per-100 g values.
+  - **Water that never reaches the plate** ("enough to immerse egg", "water for steaming") comes
+    out too. Soaking water stays (sago soaks it up, dates are ground with it).
+  - **Servings**: INDB's serving is the recipe ÷ its number of pieces, so it shrinks with the
+    recipe. `data/curated/indb_servings.csv` sets the piece count where INDB's is off (gulab
+    jamun, chhena sweets). A serving is then dropped if it is outside 5–600 g, a piece or slice
+    over 450 kcal, any other serving over 700 kcal, or a cup/glass bigger than one (tea cup
+    250 g, cup 300 g, glass 350 g, tall glass 450 g).
+  - Not fixed: water that boils off while cooking. INDB's per-100 g is per raw weight, so dals,
+    curries, chhena sweets and dry fried snacks (sev, chips) are low per 100 g when weighed;
+    per piece/serving they are right.
 - If a source has no energy value: `kcal = 4·protein + 4·carb + 9·fat` (+ `energy_estimated = 1`).
 - Vitamin A RAE = retinol + β-carotene / 12 + other provitamin-A carotenoids / 24 (µg)
   — confirm the conversion factor ICMR-NIN 2020 uses before Stage 9.
@@ -330,7 +344,7 @@ before closing and crashes the app on reload.
 | density_g_per_ml | REAL | default 1.0 |
 | default_unit | TEXT | e.g. `katori`, `roti_m`, `piece`, `g` |
 | default_qty | REAL | e.g. 1 |
-| yield_g | REAL NULL | weight of the whole recipe that the per-100 g values refer to (INDB dishes: the **raw** ingredient weight — INDB divides recipe totals by it, checked in the build) |
+| yield_g | REAL NULL | weight of the whole recipe that the per-100 g values refer to (INDB dishes: the **raw** ingredient weight — INDB divides recipe totals by it, checked in the build — minus frying oil left in the pan and discarded water, §3) |
 | energy_estimated | INTEGER | 1 if energy was calculated from macros |
 | search_rank | INTEGER | source priority: indb 1, ifct 2, usda 3 |
 | name_hi | TEXT NULL | Roman-letter Hindi name ("Garam Chai", "Bhindi"), from INDB brackets / IFCT |
@@ -362,7 +376,8 @@ g 1 g. (Roti, piece, slice have no default: they exist only per food.)
 `is_fat INTEGER` (oil, ghee, butter, vanaspati, margarine), NUTRIENTS (per 100 g of the
 ingredient — filled **only for fat rows**, which is all the adjuster needs; other ingredients
 are looked up by `ingredient_food_id`, or are unknown if it is NULL).
-PK (`recipe_food_id`, `position`). Built from `data/raw/recipes.xlsx`: kitchen measures become
+PK (`recipe_food_id`, `position`). `grams` is the amount in the dish as eaten: frying oil only
+the part the food soaks up, discarded water 0 (§3). Built from `data/raw/recipes.xlsx`: kitchen measures become
 grams with tsp 5 ml · tbsp 15 ml · cup 240 ml · ml × density; Anuvaad's own ingredient codes
 are linked to foods through `data/curated/indb_ingredients.csv`.
 

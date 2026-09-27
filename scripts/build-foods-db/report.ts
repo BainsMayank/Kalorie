@@ -8,10 +8,21 @@ import type { RecipeStats } from './recipes';
 import { type FoodRecord, type Source, refOf } from './types';
 import type { FoodRow } from './write';
 
+/** What happened to INDB servings after the recipe fixes. */
+export interface ServingSummary {
+  /** Shrunk with their recipe (frying oil, drained water). */
+  resized: number;
+  /** Piece count from indb_servings.csv. */
+  overridden: number;
+  /** Still not believable, so left out ("Tutti frutti cake (1 cake = 848 g, 2950 kcal)"). */
+  dropped: string[];
+}
+
 export interface BuildSummary {
   read: { source: Source; rows: number; notes: string[] }[];
   dedupe: DedupeResult;
   recipes: RecipeStats;
+  servings: ServingSummary;
   foods: FoodRow[];
   records: Map<string, FoodRecord>;
   synonymTermsCurated: number;
@@ -187,6 +198,18 @@ function printRecipes(s: BuildSummary): void {
       .map(([n, x]) => `${n} ${Math.round(x * 100)}%`)
       .join(' · ')}`,
   );
+  log(
+    `  frying oil cut to what the food soaks up: ${r.fryingFixed} dishes, ` +
+      `${Math.round(r.fryingOilRemovedG / 1000)} kg of oil left in the pan`,
+  );
+  log(`  egg-boiling / steaming water taken out: ${r.drainedFixed} dishes`);
+  const sv = s.servings;
+  log(
+    `  INDB servings: ${sv.resized} resized with their recipe · ${sv.overridden} from ` +
+      `indb_servings.csv · ${sv.dropped.length} left out (not believable):`,
+  );
+  for (let i = 0; i < sv.dropped.length; i += 3)
+    log(`    ${sv.dropped.slice(i, i + 3).join(' · ')}`);
   log(`  most-used unlinked ingredients (add to indb_ingredients.csv to link them):`);
   log(
     `    ${r.unlinkedCodes

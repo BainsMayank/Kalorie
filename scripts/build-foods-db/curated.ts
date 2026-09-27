@@ -253,3 +253,27 @@ export function loadSearchPins(): SearchPin[] {
     return { terms: [...new Set(terms)], ref: row.ref, name: row.name };
   });
 }
+
+// --- indb_servings.csv -------------------------------------------------------------------
+
+export interface ServingOverride {
+  name: string;
+  pieces: number;
+  label: string;
+}
+
+/** Pieces per INDB recipe, by ref, where INDB's own count is off. */
+export function loadServingOverrides(): Map<string, ServingOverride> {
+  const file = 'indb_servings.csv';
+  const overrides = new Map<string, ServingOverride>();
+  for (const row of curated(file)) {
+    if (!/^indb:\S+$/.test(row.ref)) fail(file, `ref "${row.ref}" should look like indb:BFP392`);
+    if (overrides.has(row.ref)) fail(file, `${row.ref} is listed twice`);
+    if (!row.name) fail(file, `name is required for ${row.ref}`);
+    if (!row.label) fail(file, `label is required for ${row.ref}`);
+    const pieces = toNumber(file, row.pieces, `pieces for ${row.ref}`);
+    if (!(pieces > 0)) fail(file, `pieces for ${row.ref} must be more than 0`);
+    overrides.set(row.ref, { name: row.name, pieces, label: row.label });
+  }
+  return overrides;
+}

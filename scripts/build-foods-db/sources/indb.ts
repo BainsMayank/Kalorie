@@ -55,6 +55,19 @@ const DROPPED = new Set(['ml', 'gm', 'jar', 'glass jar', 'half-pints', 'box']);
 /** Serving weights outside this range are whole-recipe amounts or data errors. */
 export const SERVING_GRAMS_MIN = 5;
 export const SERVING_GRAMS_MAX = 600;
+/** More kcal than this in one piece or slice means INDB's piece count for the recipe is off. */
+export const PIECE_KCAL_MAX = 450;
+/** …and in one bowl, plate or glass. */
+export const SERVING_KCAL_MAX = 700;
+/** Largest believable cup or glass, in grams (INDB calls a 460 ml mug of coffee "1 tea cup"). */
+const CONTAINER_GRAMS_MAX: Record<string, number> = {
+  'tea cup': 250,
+  cup: 300,
+  glass: 350,
+  'juice glass': 300,
+  'tall glass': 450,
+  'tall stemmed glass': 450,
+};
 
 /** Turns INDB's serving name into a unit key: "tall glass" → serving, "parantha" → piece. */
 export function indbServingUnit(text: string): { unit: string; label: string } | null {
@@ -69,7 +82,10 @@ export function indbServingUnit(text: string): { unit: string; label: string } |
   return { unit: 'piece', label };
 }
 
-/** The INDB serving as a unit row, or `null` if it's missing or not believable. */
+/**
+ * The INDB serving as a unit row, as INDB gives it, or `null` if it's missing. Check it with
+ * `believableServing` after the recipe fixes (`fixedIndbServing`).
+ */
 export function indbServing(row: Row): UnitRow | null {
   const unit = indbServingUnit(String(row.servings_unit ?? ''));
   if (!unit) return null;
@@ -83,10 +99,48 @@ export function indbServing(row: Row): UnitRow | null {
   for (const [perServing, per100] of pairs) {
     const grams = servingGrams(num(row, perServing), num(row, per100));
     if (grams === null) continue;
-    if (grams < SERVING_GRAMS_MIN || grams > SERVING_GRAMS_MAX) return null;
     return { ...unit, grams: Math.round(grams * 10) / 10 };
   }
   return null;
+}
+
+/**
+ * Is this a believable single serving? Not if it's outside 5–600 g, a piece over 450 kcal, a
+ * bowl or glass over 700 kcal, or a cup or glass bigger than cups and glasses are.
+ */
+export function believableServing(serving: UnitRow, kcalPer100: number | null): boolean {
+  const { grams, unit, label } = serving;
+  if (grams < SERVING_GRAMS_MIN || grams > SERVING_GRAMS_MAX) return false;
+  if (grams > (CONTAINER_GRAMS_MAX[label] ?? Infinity)) return false;
+  if (kcalPer100 === null) return true;
+  const kcal = (grams * kcalPer100) / 100;
+  const isPiece = unit === 'piece' || unit === 'slice';
+  return kcal <= (isPiece ? PIECE_KCAL_MAX : SERVING_KCAL_MAX);
+}
+
+/**
+ * The INDB serving after the recipe fixes (SPEC §3). INDB's serving is the whole recipe divided
+ * into pieces, so it shrinks with the recipe: `scale` = fixed recipe weight ÷ listed weight.
+ * `pieces` (from indb_servings.csv) replaces INDB's count: grams = recipe weight ÷ pieces.
+ * Returns the serving unchanged when nothing applies, or `null` if it isn't believable.
+ */
+export function fixedIndbServing(
+  serving: UnitRow | null,
+  kcalPer100: number | null,
+  scale: number,
+  pieces?: { pieces: number; label: string; yieldG: number },
+): UnitRow | null {
+  let fixed = serving;
+  if (pieces) {
+    fixed = {
+      unit: 'piece',
+      label: pieces.label,
+      grams: Math.round((pieces.yieldG / pieces.pieces) * 10) / 10,
+    };
+  } else if (serving && scale !== 1) {
+    fixed = { ...serving, grams: Math.round(serving.grams * scale * 10) / 10 };
+  }
+  return fixed && believableServing(fixed, kcalPer100) ? fixed : null;
 }
 
 // INDB column → our column, with a factor (fatty acids are in mg, we store g).
