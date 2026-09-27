@@ -1,0 +1,5 @@
+# Manual duplicate decisions, on top of the automatic exact-name matching in the build.
+# Refs are "<source>:<source_code>", e.g. ifct:C033, indb:ASC096, usda_sr:168462, usda_fnd:1750353.
+# action: drop      = remove `ref_b` (a duplicate of `ref_a`, which is kept)
+#         keep_both = the automatic matcher paired them, but they are different foods
+ref_a,ref_b,action,note

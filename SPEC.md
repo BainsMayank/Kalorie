@@ -54,16 +54,25 @@ never feel like a chore**.
 | Incomplete marker | > 20% of the day's grams lack a value |
 | Hide numbers | Hides kcal, grams, %, weight; keeps shapes and words |
 | CSV export | Entries, daily totals, weight, water (4 files) |
-| Extra libraries approved | expo-file-system, expo-sharing, expo-asset, expo-haptics, expo-secure-store (Stage 12); dev-only: better-sqlite3, xlsx, csv-parse, tsx, drizzle-kit |
+| Extra libraries approved | expo-file-system, expo-sharing, expo-asset, expo-haptics, expo-secure-store (Stage 12); dev-only: xlsx, csv-parse, tsx, drizzle-kit (better-sqlite3 not needed — see Stage 2 row) |
 | Colours | Monochrome base; accent colours only where they carry meaning; no red for "over" |
 | Undo | 5-second Undo bar + soft delete kept 30 days |
 | Sync (Stage 11) | Email one-time code; backup + restore + shared foods pool via invite code |
+| Food data build (Stage 2) | Node's built-in `node:sqlite` (has FTS5) instead of better-sqlite3 · IFCT from `@ifct2017/compositions` **2.0.9** (MIT, pinned) because `ifct2017` ≥ 2.1 is AGPL-3.0 · `xlsx` 0.20.3 from the SheetJS CDN (the npm copy is outdated) · foods get a Roman Hindi `name_hi` and 4 completeness flags |
+| Tabs (changed in Stage 1) | Today · Log · Trends · Profile. Log = timeline + calendar (was History); Profile = settings and account (was More) |
+| Search ranking (Stage 2b, 2026-09-27) | Match tiers refined (§5.1 step 4) and hand-picked **search pins** added for staples the data can't rank on its own (plain curd exists only in USDA). Until Stage 8, the Log tab shows food search + a food detail screen (`app/food/[id].tsx`) so search can be tried on the phone |
 
 ---
 
 ## 2. Screens
 
-Navigation uses expo-router. There are four bottom tabs: **Today · History · Trends · More**.
+Navigation uses expo-router. There are four bottom tabs: **Today · Log · Trends · Profile**.
+- **Today** — the main overview of the day.
+- **Log** — the meal timeline for today, and past days picked from a calendar.
+- **Trends** — stats over days and weeks, and insights.
+- **Profile** — settings, your profile and account, and other options.
+
+Route files in `app/` only re-export a screen from `src/features/<name>/`.
 "Add food" is a full-screen modal opened from Today.
 
 ### 2.1 Onboarding (`app/(onboarding)/`) — target under 60 seconds
@@ -149,7 +158,7 @@ fat, fibre, sodium (mg), cholesterol (mg). Optional: serving size in g, pack siz
 Saved as per-100 g (§5.3). Stage 12 adds a toggle: *Also share with Open Food Facts*.
 The **Pending lookups** card on Today lists queued barcodes; tapping retries.
 
-### 2.9 My foods, recipes, thalis (`More` tab → Foods)
+### 2.9 My foods, recipes, thalis (`Profile` tab → Foods)
 - **My foods list** — custom foods + cached products, search, edit, delete.
 - **Create / edit food** — same fields as §2.8, plus custom units ("1 bowl = 180 g").
 - **Recipe list / builder** — name, servings, ingredients (search to add; qty + unit each;
@@ -158,12 +167,13 @@ The **Pending lookups** card on Today lists queued barcodes; tapping retries.
 - **Thalis** — built-in starters and *My thalis*. Tap → preview the list with checkboxes
   → *Log selected* to the chosen slot. *Save as thali* from any meal card.
 
-### 2.10 History tab (`app/(tabs)/history.tsx`)
+### 2.10 Log tab (`app/(tabs)/log.tsx`)
+- Opens on **today's timeline** (meal-slot cards as in §2.2), editable.
 - **Calendar** (react-native-calendars) with day dots coloured by adherence (§5.6),
   plus a legend. Month swipe.
-- Below: streak summary ("Longest: 34 days · This week: 5 of 7 logged").
-- Tap a day → **Day detail**: same layout as Today's timeline for that date (editable),
-  day totals, *Recently deleted* for that day (restore within 30 days).
+- Streak summary ("Longest: 34 days · This week: 5 of 7 logged").
+- Tap a day → that day's timeline (editable), day totals, *Recently deleted* for that
+  day (restore within 30 days).
 
 ### 2.11 Trends tab (`app/(tabs)/trends.tsx`)
 Segment: **Week · Month**. Sections:
@@ -180,14 +190,14 @@ Period picker (Day · Week avg). Two groups: **Vitamins**, **Minerals**, plus **
 amount + unit, `≈` and "some foods missing data" marker when incomplete (§5.10),
 a neutral "above safe upper level" note when above TUL. Tap → top 3 foods for that nutrient.
 
-### 2.13 Goals (`More` → Goals)
+### 2.13 Goals (`Profile` → Goals)
 - Profile (sex, age, height, weight, activity, goal, pace) → *Recalculate targets*.
 - Targets: kcal, protein, carbs, fat, fibre — each editable (new values start a new
   `targets` row from today, so past days keep their old targets).
 - Limits: sodium, sugar, saturated fat, fat — each editable and each with an on/off alert toggle.
 - Floor warning shown inline when kcal is below the floor.
 
-### 2.14 More tab / Settings
+### 2.14 Profile tab / Settings (`app/(tabs)/profile.tsx`)
 Goals · My foods · Recipes · Thalis · Meal slots (rename, reorder, hide, add custom, edit
 time windows) · Water (glass ml, goal ml) · Hide numbers · Theme (System / Light / Dark) ·
 Reminders (per slot, time) · Alerts · Export CSV · About & data sources (licences and
@@ -240,7 +250,12 @@ The same column names are used in `foods` (foods.db) and `custom_foods` (user.db
 | 35 | `vit_k_ug` | Vitamin K | µg | Vitamin |
 
 Build-time conversions:
-- IFCT energy is in kJ → `kcal = kJ / 4.184`.
+- IFCT energy is in kJ → `kcal = kJ / 4.184`. Every other IFCT value (from
+  `@ifct2017/compositions`) is in **grams** per 100 g → × 1000 for mg, × 10⁶ for µg. IFCT writes
+  a missing value as 0: when a whole group (minerals, vitamins, fatty acids) is 0 for a food it
+  is stored as `NULL`.
+- INDB fatty acids are in mg → ÷ 1000. INDB's `vita_ug` is retinol only, so
+  `vit_a_ug = vita + carotenoids / 12`. INDB serving grams = serving kcal ÷ kcal per 100 g × 100.
 - If a source has no energy value: `kcal = 4·protein + 4·carb + 9·fat` (+ `energy_estimated = 1`).
 - Vitamin A RAE = retinol + β-carotene / 12 + other provitamin-A carotenoids / 24 (µg)
   — confirm the conversion factor ICMR-NIN 2020 uses before Stage 9.
@@ -294,8 +309,12 @@ Dates are `TEXT 'YYYY-MM-DD'` (the **logical day**, §5.8). Timestamps are
 ### 4.1 foods.db — read-only, bundled at `assets/db/foods.db`
 
 Built by `scripts/build-foods-db/` from `data/raw/` + `data/curated/`. The app never
-writes to it. A new version of the file replaces the old one on app update (checked by
-`meta.db_version`).
+writes to it (the connection runs with `PRAGMA query_only = ON`). On first launch the bundled
+file is copied into the phone's SQLite folder; when an app update brings a different file the
+copy is replaced — the setting `foods_db_version` stores the bundled asset's hash, and
+`meta.db_version` is bumped whenever tables change. Opened with expo-sqlite's
+`finalizeUnusedStatementsBeforeClosing: false`: the default finalizes FTS5's own statements
+before closing and crashes the app on reload.
 
 **`foods`**
 | Column | Type | Notes |
@@ -307,13 +326,16 @@ writes to it. A new version of the file replaces the old one on app update (chec
 | category | TEXT | e.g. `cereal`, `pulse`, `vegetable`, `dish`, `beverage`, `sweet` |
 | kind | TEXT | `ingredient` or `dish` |
 | diet | TEXT NULL | `veg`, `egg`, `nonveg` |
-| cooked_with_fat | INTEGER | 1 if the oil adjuster applies without a recipe |
+| cooked_with_fat | INTEGER | 1 if the oil adjuster applies without a recipe (0 for all foods.db rows: every INDB dish has a recipe) |
 | density_g_per_ml | REAL | default 1.0 |
 | default_unit | TEXT | e.g. `katori`, `roti_m`, `piece`, `g` |
 | default_qty | REAL | e.g. 1 |
-| yield_g | REAL NULL | cooked weight of the whole recipe (INDB dishes) |
+| yield_g | REAL NULL | weight of the whole recipe that the per-100 g values refer to (INDB dishes: the **raw** ingredient weight — INDB divides recipe totals by it, checked in the build) |
 | energy_estimated | INTEGER | 1 if energy was calculated from macros |
 | search_rank | INTEGER | source priority: indb 1, ifct 2, usda 3 |
+| name_hi | TEXT NULL | Roman-letter Hindi name ("Garam Chai", "Bhindi"), from INDB brackets / IFCT |
+| complete_macro | INTEGER | 1 if energy, protein, carbs and fat are all known |
+| complete_other, complete_mineral, complete_vitamin | INTEGER | 1 if ≥ 80% of that §3 group is known |
 | NUTRIENTS | REAL NULL | per 100 g |
 
 **`food_synonyms`** — `food_id INTEGER`, `term TEXT` (lowercase, Roman letters),
@@ -324,8 +346,12 @@ their phonetic keys, §5.1). Tokenizer `unicode61 remove_diacritics 2`, prefix i
 
 **`food_units`** — `food_id INTEGER`, `unit TEXT` (`katori`, `roti_s`, `roti_m`,
 `roti_l`, `piece`, `glass`, `cup`, `tsp`, `tbsp`, `slice`, `bowl`…), `label TEXT`
-("1 medium roti"), `grams REAL` (for 1 unit), `is_default INTEGER`.
-PK (`food_id`, `unit`).
+("medium roti" — no number, so the app can show "2 medium roti"), `grams REAL` (for 1 unit),
+`is_default INTEGER`. PK (`food_id`, `unit`). Every unit a food offers has a row, including
+standard measures (katori = 150 ml × density), so the portion sheet reads its chips from here;
+`g` is always offered and has no row. INDB servings become `piece`, `slice`, `bowl`, `plate`,
+`serving`, `tbsp` or `tsp` (label = INDB's word, e.g. "parantha", "tall glass"); USDA portions
+become `cup`, `tbsp`, `tsp`, `slice`, `piece`, `piece_s`, `piece_l` or `serving`.
 
 **`unit_defaults`** — `unit TEXT PK`, `ml REAL NULL`, `grams REAL NULL`, `label TEXT`.
 Rows: katori 150 ml · glass 250 ml · cup 240 ml · tbsp 15 ml · tsp 5 ml · ml 1 ml ·
@@ -333,9 +359,15 @@ g 1 g. (Roti, piece, slice have no default: they exist only per food.)
 
 **`recipe_ingredients`** — `recipe_food_id INTEGER`, `position INTEGER`,
 `ingredient_food_id INTEGER NULL`, `ingredient_name TEXT`, `grams REAL`,
-`is_fat INTEGER` (oil, ghee, butter, vanaspati), NUTRIENTS (per 100 g of the ingredient,
-copied so the adjuster works even if the ingredient isn't a food row).
-PK (`recipe_food_id`, `position`).
+`is_fat INTEGER` (oil, ghee, butter, vanaspati, margarine), NUTRIENTS (per 100 g of the
+ingredient — filled **only for fat rows**, which is all the adjuster needs; other ingredients
+are looked up by `ingredient_food_id`, or are unknown if it is NULL).
+PK (`recipe_food_id`, `position`). Built from `data/raw/recipes.xlsx`: kitchen measures become
+grams with tsp 5 ml · tbsp 15 ml · cup 240 ml · ml × density; Anuvaad's own ingredient codes
+are linked to foods through `data/curated/indb_ingredients.csv`.
+
+**`search_pins`** — `term TEXT PK` (phonetic key text, §5.1), `food_id INTEGER`. The food shown
+first for that exact search term. Built from `data/curated/search_pins.csv`.
 
 **`thali_templates`** — `id INTEGER PK`, `name TEXT`, `region TEXT`.
 **`thali_template_items`** — `template_id INTEGER`, `position INTEGER`, `food_id INTEGER`,
@@ -492,16 +524,33 @@ All formulas live as **pure functions** in `src/lib/` with unit tests.
 
 ### 5.1 Search
 1. **Normalise** query and indexed terms: lowercase → trim → remove punctuation →
-   collapse repeated letters (`daal`→`dal`, `pappad`→`papad`) → `ee`→`i`, `oo`→`u`,
+   `ee`→`i`, `oo`→`u` → collapse repeated letters (`daal`→`dal`, `pappad`→`papad`) →
    `w`→`v`, `ph`→`f` → this is the **phonetic key**.
-2. Query `foods_fts` with each token as a prefix (`dal* tad*`) against name, synonyms and
-   phonetic keys. Also query `custom_foods` by name/brand (LIKE).
-3. If fewer than 5 results: fuzzy pass — Levenshtein distance ≤ 1 (tokens ≤ 5 letters)
-   or ≤ 2 (longer) against synonym terms and names.
-4. **Rank** (lower is better): match type (exact 0 · prefix 1 · phonetic 2 · fuzzy 3) →
-   personal use (logged in last 30 days first, most often first) → source
-   (custom/product 0 · INDB 1 · IFCT 2 · USDA 3) → shorter name.
+2. Query `foods_fts` with each token as a prefix, as typed and as its phonetic key
+   (`("daal"* OR "dal"*) AND "tadka"*`) against name, synonyms and phonetic keys (up to 500
+   candidates, shortest names first). Also look up `search_pins` for the whole query. Queries
+   shorter than 2 letters are not searched. *(Stage 3+: also query `custom_foods` by name/brand.)*
+3. If fewer than 5 results: typo pass — also accept index words within Levenshtein distance ≤ 1
+   (tokens ≤ 5 letters) or ≤ 2 (longer) of each token or its phonetic key (up to 3 per token,
+   closest then most common first); tokens under 3 letters are not corrected.
+4. **Rank** (lower is better):
+   - **match type**, checked against the food's own names — the name, its "a/b" alternatives
+     ("Dal parantha/paratha" → *dal parantha*, *dal paratha*), the Roman Hindi name, and for
+     IFCT/USDA the part before the first comma or bracket ("Okra, raw" → *okra*). Words match
+     as typed, by phonetic key, or as a plural. The last word may be unfinished.
+     pinned 0 · exact 1 · name starts with the query 2 · name has all query words 3 ·
+     all words found only among synonyms 4 · starts with, last word unfinished 5 · has all
+     words, last unfinished 6 · anything else the index found 7 · found only by the typo pass
+     +10 (then matched against the corrected words)
+   - personal use (logged in last 30 days first, most often first) — *from Stage 3*
+   - source (custom/product 0 · INDB 1 · IFCT 2 · USDA 3)
+   - fewer extra words in the best-matching name → shorter name.
 5. Limit 50 results. Target: results in under 100 ms on a mid-range Android phone.
+6. **Pins** (`data/curated/search_pins.csv`): for common words whose everyday meaning the rules
+   can't know, a hand-picked food comes first — e.g. INDB/IFCT have no plain curd, so *dahi*,
+   *curd*, *yogurt* → "Yogurt, plain, whole milk"; *dal*, *daal*, *dhal* → "Mixed dal". A pin
+   applies only when the whole query is that term (compared by phonetic key).
+7. The search box waits 150 ms after the last key press before searching (debounce).
 
 ### 5.2 Unit → grams
 ```
@@ -553,10 +602,14 @@ Levels: Less `L = 0.5` · Normal `L = 1.0` · More `L = 1.5` (stored as −1 / 0
 ```
 F      = Σ grams of fat ingredients
 N_fat  = Σ nutrients of fat ingredients (grams/100 × per100)
-N_rest = Σ nutrients of other ingredients
 Y      = yield_g (or Σ ingredient grams if unknown)
+N_rest = per100(n) × Y / 100 − N_fat      (the dish total minus its fats, so ingredients
+                                          without nutrient data don't matter)
 adjustedPer100(n) = (N_rest(n) + L × N_fat(n)) / (Y + (L − 1) × F) × 100
+                  = (per100 × Y/100 + (L − 1) × N_fat) / (Y + (L − 1) × F) × 100
 ```
+Implemented as `oilAdjustedPer100` in `src/lib/oil.ts` (never below zero). For user recipes,
+`per100` is the recipe's own computed value, so both forms agree.
 **Foods without a recipe** but `cooked_with_fat = 1`:
 ```
 oilDelta_g = level × 5 × grams / 150          (±5 g oil per katori-sized 150 g)
@@ -712,7 +765,7 @@ Minimum tap target 48 dp. Logging a known food takes ≤ 3 taps from Today
 (+ Add → tap food → Log). Everything should be reachable with one thumb.
 
 ### 8.3 Hide-numbers mode
-Hides kcal, grams, percentages and weight values everywhere (Today, History, Trends,
+Hides kcal, grams, percentages and weight values everywhere (Today, Log, Trends,
 Micros, portion sheet). Keeps ring/pie shapes, bars and the calendar colours.
 The ring shows words instead:
 | Share of target | Words |
@@ -735,7 +788,8 @@ Goals."*
 
 ## 9. Data sources and licences
 - **INDB** (Indian Nutrient Databank, Anuvaad) — recipes + ingredients → `data/raw/indb/`.
-- **IFCT 2017** (NIN, Hyderabad) — via the `ifct2017` npm package (dev dependency).
+- **IFCT 2017** (NIN, Hyderabad) — via the `@ifct2017/compositions` npm package, pinned to
+  2.0.9 (MIT; the `ifct2017` package became AGPL-3.0 in 2.1.0). Details in `data/SOURCES.md`.
 - **USDA FoodData Central** — Foundation Foods + SR Legacy CSV → `data/raw/usda/`.
   Public domain.
 - **Open Food Facts** — live lookups; ODbL — attribution required.

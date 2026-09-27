@@ -9,14 +9,19 @@ Expo latest SDK + TypeScript (strict) · expo-router · expo-sqlite + Drizzle OR
 react-native-gifted-charts · react-native-calendars · @shopify/flash-list · expo-camera ·
 expo-image-picker · expo-notifications (local only) · i18next + expo-localization (English only) ·
 jest-expo + React Native Testing Library. Supabase (Stage 11) and EAS Build come later.
-Also approved: expo-file-system, expo-sharing, expo-asset, expo-haptics, expo-secure-store (Stage 12);
-dev-only: better-sqlite3, xlsx, csv-parse, tsx, drizzle-kit.
+Also approved: react-i18next, expo-font (needed by @expo/vector-icons), expo-file-system, expo-sharing, expo-asset, expo-haptics, expo-secure-store (Stage 12);
+dev-only: xlsx (0.20.3 from cdn.sheetjs.com), csv-parse, tsx, drizzle-kit,
+@ifct2017/compositions (pinned 2.0.9 — MIT; never `ifct2017` ≥ 2.1, it is AGPL), babel-plugin-inline-import,
+eslint + eslint-config-expo, prettier + eslint-config-prettier.
+The foods.db build uses Node's built-in `node:sqlite` (Node ≥ 22.13), not better-sqlite3.
+Rebuild foods.db with `npm run build:foods`; sources and licences are in `data/SOURCES.md`.
 
 ## Folder structure
 ```
-app/                  expo-router screens: (onboarding)/, (tabs)/, add/, modals
+app/                  expo-router routes only: (onboarding)/, (tabs)/, add/, modals — each file
+                      re-exports a screen from src/features/. No tests here (they'd be bundled).
 src/components/       reusable UI pieces
-src/features/<name>/  screen logic per feature (logging, search, goals, history, ...)
+src/features/<name>/  screens + screen logic per feature (today, log, trends, profile, ...)
 src/lib/              pure functions: formulas, units, search, streaks (all unit-tested)
 src/db/foods/         read-only access to foods.db
 src/db/user/          Drizzle schema + queries for user.db

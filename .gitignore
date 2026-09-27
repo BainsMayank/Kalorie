@@ -16,6 +16,8 @@ android/
 *.p12
 *.key
 *.mobileprovision
+*.pem
+.kotlin/
 *.orig.*
 
 # Metro
@@ -35,3 +37,6 @@ yarn-error.*
 
 # Tests
 coverage/
+
+# Source datasets (large, downloaded, not edited by hand)
+data/raw/

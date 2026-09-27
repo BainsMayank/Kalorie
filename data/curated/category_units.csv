@@ -1,0 +1,38 @@
+# Default units and density for each food category.
+# units:        standard measures offered for the food (katori 150 ml, glass 250 ml, cup 240 ml,
+#               tbsp 15 ml, tsp 5 ml, ml). Grams = ml × density. "g" is always offered.
+# default_unit: tried left to right; the first unit the food actually has becomes the default.
+#               piece / slice / bowl / plate / serving come from INDB servings or USDA portions,
+#               roti_m and others from unit_weights.csv. Falls back to g (100 g).
+# density:      grams per ml, used for katori/glass/cup/tbsp/tsp/ml. Per-food fixes: densities.csv.
+category,default_unit,units,density_g_per_ml
+beverage,serving|glass,glass|cup|ml,1.0
+dal,katori,katori,1.0
+curry,katori,katori,1.0
+rice_dish,katori,katori,0.65
+bread,roti_m|piece|serving,,1.0
+breakfast,piece|katori,katori,0.8
+snack,piece|slice|serving|plate|katori,katori,0.6
+sweet,piece|slice|serving|katori,katori,1.0
+baked,piece|slice|serving,,0.5
+soup,bowl|katori,katori|cup,1.0
+salad,katori,katori,0.6
+condiment,tbsp,tbsp|tsp,1.1
+egg,piece|serving,,1.0
+dish,serving|plate|bowl|piece|katori,katori,0.9
+cereal,g,cup|tbsp,0.75
+pulse,g,cup|tbsp,0.85
+leafy_veg,g,cup,0.25
+vegetable,g,katori|cup,0.55
+root_tuber,piece,cup,0.65
+fruit,piece,katori|cup,0.6
+nuts_seeds,g,tbsp|cup,0.55
+spice,tsp,tsp|tbsp,0.5
+sugar,tsp,tsp|tbsp,0.85
+mushroom,g,cup,0.4
+dairy,g,glass|cup|katori|tbsp,1.03
+meat,g,,1.0
+poultry,g,,1.0
+fish,g,,1.0
+oil_fat,tsp,tsp|tbsp,0.92
+misc,g,katori,1.0

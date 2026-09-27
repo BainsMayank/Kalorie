@@ -1,0 +1,43 @@
+# Per-food units. A row applies to every food whose English name contains one of the `match`
+# phrases as whole words (plural -s/-es is fine), is in one of `categories` (empty = any), and
+# contains none of the `exclude` phrases. Phrases are separated by |.
+# grams:           weight of 1 unit. Leave empty for a standard measure (katori, glass…) to use
+#                  ml × density; that is how a row just changes the default unit.
+# is_default:      1 = this becomes the food's default unit.
+# replace_serving: 1 = don't also add the INDB serving (e.g. roti sizes replace "1 chapati").
+match,categories,exclude,unit,grams,label,is_default,replace_serving
+chapati|roti|phulka,bread|baked,makki|paushtik|soya|puranpoli|sweet|rumali|tandoori|missi|bajra|jowar|ragi|naan,roti_s,25,small roti,0,1
+chapati|roti|phulka,bread|baked,makki|paushtik|soya|puranpoli|sweet|rumali|tandoori|missi|bajra|jowar|ragi|naan,roti_m,35,medium roti,1,1
+chapati|roti|phulka,bread|baked,makki|paushtik|soya|puranpoli|sweet|rumali|tandoori|missi|bajra|jowar|ragi|naan,roti_l,50,large roti,0,1
+egg,egg,white|yolk|dried|powder|omelet|omlet|omelette|scrambled|substitute|frozen|curry|halwa|bhurji|bhujia|nog|sandwich|salad|drop,piece,50,egg,1,1
+banana,fruit,dried|dehydrated|chips|powder|flour|juice,piece,118,medium banana,1,0
+apple,fruit,dried|dehydrated|juice|sauce|canned|custard|star|wood|rose|jam|pie,piece,150,medium apple,1,0
+orange,fruit,juice|peel|canned|mandarin|marmalade,piece,130,medium orange,1,0
+sweet lime|mosambi,fruit,juice,piece,150,sweet lime,1,0
+guava,fruit,juice|nectar,piece,100,guava,1,0
+mango,fruit,juice|nectar|dried|canned|green|raw,piece,200,mango,1,0
+sapota|chikoo,fruit,,piece,80,chikoo,1,0
+pear,fruit,prickly|dried|canned|nectar,piece,150,pear,1,0
+peach,fruit,dried|canned|nectar,piece,120,peach,1,0
+plum,fruit,dried|canned,piece,60,plum,1,0
+kiwi,fruit,dried,piece,70,kiwi,1,0
+litchi|lychee,fruit,dried|canned,piece,10,litchi,1,0
+strawberry,fruit,frozen|jam|canned,piece,12,strawberry,1,0
+dates,fruit,,piece,8,date,1,0
+tomato,vegetable,juice|puree|paste|sauce|canned|dried|sun dried|soup|ketchup|green,piece,90,medium tomato,0,0
+onion,vegetable|spice,powder|rings|dehydrated|stalk|flakes|spring|green,piece,100,medium onion,0,0
+potato,root_tuber|vegetable,sweet|chips|flour|powder|mashed|fries|puffs|salad|dehydrated|canned|hash,piece,150,medium potato,1,0
+sweet potato,root_tuber|vegetable,canned|fries|chips|leaves,piece,150,medium sweet potato,1,0
+carrot,root_tuber|vegetable,juice|canned|frozen,piece,60,medium carrot,0,0
+cucumber,vegetable,pickle|pickled,piece,150,medium cucumber,0,0
+radish,root_tuber|vegetable,leaves|seeds|oriental|dried,piece,100,medium radish,0,0
+beetroot|beet,root_tuber|vegetable,greens|canned|pickled,piece,100,medium beetroot,0,0
+capsicum|bell pepper|peppers sweet,vegetable,dried|canned|stuffed,piece,120,medium capsicum,0,0
+chillies green|chilli green|peppers hot chili green,spice|vegetable,,piece,3,green chilli,0,0
+garlic,spice|vegetable,powder|salt,piece,3,clove,0,0
+almond,nuts_seeds,butter|paste|milk|oil|flour|meal,piece,1.2,almond,0,0
+cashew,nuts_seeds,butter|paste,piece,1.5,cashew,0,0
+milk,dairy|beverage,powder|dried|dry|condensed|evaporated|cheese|chocolate|shake|cream|khoa|substitute|imitation|human|yogurt|yoghurt|curd,glass,,,1,0
+curd|yogurt|yoghurt|dahi,dairy,frozen|drink|greek|dressing|dip|rice,katori,,,1,0
+buttermilk|chaas|lassi,dairy|beverage,biscuit|pancake|dried|powder,glass,,,1,0
+cooked,cereal|pulse,,katori,,,1,0

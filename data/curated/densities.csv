@@ -1,0 +1,20 @@
+# Density fixes (g per ml) for foods that differ from their category's default in
+# category_units.csv. Matching works like unit_weights.csv; the first matching row wins.
+match,categories,exclude,density
+flour|atta|maida|besan,cereal|pulse,,0.53
+flakes|poha,cereal,,0.3
+puffed|murmura|popcorn,cereal|snack,,0.12
+semolina|suji|rava,cereal,,0.65
+cooked,cereal,,0.65
+cooked,pulse,,0.85
+rice,cereal,flour|flakes|puffed|bran|cooked|noodles|cake,0.85
+ghee|vanaspati|butter oil,oil_fat|dairy,,0.91
+butter,oil_fat|dairy,peanut|almond|cashew|oil,0.96
+honey,sugar|sweet|condiment,,1.42
+sugar|granulated,sugar,brown|powdered|icing,0.85
+jaggery|gur,sugar,,0.9
+salt,spice,,1.2
+raita,salad,,1.0
+milk,dairy|beverage,powder|dried|dry,1.03
+curd|yogurt|yoghurt,dairy,,1.05
+cream,dairy,ice|sour,1.0

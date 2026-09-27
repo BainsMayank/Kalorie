@@ -1,0 +1,191 @@
+# INDB recipe ingredients that are NOT IFCT foods. Anuvaad gave them its own codes (T508, G528…),
+# copied from the UK (CoFID) and US food tables, and their nutrients aren't in our files.
+# This maps each code to a food in foods.db so recipe_ingredients can carry nutrients.
+# IFCT-coded ingredients (A015, L002…) are linked automatically and are not listed here.
+# ref:  <source>:<code> of a food in foods.db, or "zero" for things with no nutrients (water).
+#       A ref that the build removed as a duplicate is followed to the food that was kept.
+# Codes not listed stay unlinked: grams are kept, nutrients are unknown. That's fine for the
+# oil adjuster, which only needs the fats — but every fat (T5xx) must be mapped.
+# Deliberately NOT linked: codes whose values are per 100 g INCLUDING waste, which no food in
+# foods.db matches — E520 "Lemons, flesh only, weighed with peel and pips", N500 "Chicken, whole,
+# weighed with bone", E503 "Bananas, flesh only, weighed with skin". Linking them to edible-part
+# foods would overstate them. Also unlinked: essences, food colours, citric acid (tiny amounts,
+# no code), and a few items with no close match (MSG, nigella, mint sauce, cook-in sauces).
+code,name,ref,note
+T500,"Butter, salted",usda_sr:173410,
+T501,"Butter, unsalted",usda_sr:173430,
+T502,"Oil, olive",usda_sr:171413,
+T504,Margarine,usda_sr:171435,80% fat stick margarine
+T506,"Ghee, butter",ifct:T013,IFCT ghee
+T507,"Oil, coconut",ifct:T001,
+T508,"Oil, sunflower",ifct:T012,
+T509,"Oil, sesame",ifct:T004,gingelly oil
+T510,"Oil, mustard",ifct:T006,
+K505,"Water, distilled",zero,
+G528,Salt,usda_sr:173468,
+G540,Himalayan black salt,usda_sr:173468,treated as table salt
+G516,Chilli powder,usda_sr:171319,
+G523,Garam masala,usda_sr:170924,approximation: curry powder (no garam masala in our sources)
+G515,Mixed curry spices,usda_sr:170924,
+G520,Curry powder,usda_sr:170924,
+G518,"Cinnamon, ground",usda_sr:171320,
+G512,"Bay leaf, dried",usda_sr:170917,
+G554,"Ginger, ground",usda_sr:170926,
+G510,Fennel seeds,usda_sr:171323,
+G529,Saffron,usda_sr:170934,
+G527,"Pepper, white",usda_sr:170933,
+G526,"Oregano, dried",usda_sr:171328,
+G511,"Basil, dried",usda_sr:171317,
+G531,"Thyme, dried",usda_sr:170938,
+G524,Garlic powder,usda_sr:171325,
+G545,Paprika,usda_sr:171329,
+G525,"Rosemary, dried",usda_sr:171333,
+G555,Onion powder,usda_sr:171327,
+G533,Mustard powder,usda_sr:170929,
+G536,Ajwain seeds,usda_sr:171316,approximation: anise seed
+G537,Star anise,usda_sr:171316,approximation: anise seed
+G513,Sesame seeds,usda_sr:170150,
+G532,Vinegar,usda_sr:172237,
+G538,"Vinegar, distilled",usda_sr:172237,
+G539,Balsamic vinegar,usda_sr:172241,
+G543,Rice vinegar,usda_sr:172237,
+G544,Vanilla extract,usda_sr:173471,
+G547,Spring onions,usda_sr:170005,
+D501,"Spring onions, bulbs only",usda_sr:170005,
+G546,Shallots,usda_sr:170499,
+G549,Jalapeno peppers,usda_sr:168576,
+G550,Lemon peel,usda_sr:167749,
+G552,Orange peel,usda_sr:169103,
+G551,Lemon grass,usda_sr:168573,
+G542,Capers,usda_sr:172238,
+G509,"Agar, dried",usda_sr:170090,
+G517,Chilli sauce,usda_sr:171595,
+I502,"Sugar, white",usda_sr:169655,
+I504,"Sugar, icing",usda_sr:169656,
+I503,"Sugar, brown",usda_sr:168833,
+I507,Honey,usda_sr:169640,
+I505,"Syrup, corn, dark",usda_sr:168836,
+I509,"Chocolate, plain",usda_sr:170271,dark chocolate 45-59%
+I501,"Ice cream, vanilla",usda_sr:167575,
+L520,"Yogurt, whole milk, plain",usda_sr:171284,
+L519,"Cream, fresh, single",usda_sr:170857,light (table) cream
+L515,"Cream, fluid, light",usda_sr:170857,
+L512,"Cream, fresh, whipping",usda_sr:170858,
+L505,"Cheese, processed, plain",usda_sr:171290,
+L507,Mayonnaise,usda_sr:171009,
+L508,"Milk, condensed, sweetened",usda_sr:171275,
+L517,"Whey, acid, fluid",usda_sr:170885,
+L502,"Cheese, cottage",usda_sr:172179,
+L503,"Cheese, mozzarella",usda_sr:170845,
+L501,"Cheese spread, cream cheese",usda_sr:169081,
+L514,Sour cream,usda_sr:171257,
+L521,Buttermilk,usda_sr:172225,
+L516,"Milk, dry, nonfat",usda_sr:170877,
+L511,"Cheese, ricotta",usda_sr:170851,
+L513,"Cheese, provolone",usda_sr:170850,
+L506,"Cheese, feta",usda_sr:173420,
+L518,"Cheese, cream, low fat",usda_sr:169079,
+U511,"Bread, white",usda_sr:167532,
+U501,"Bread, brown",usda_sr:172688,whole-wheat bread
+A503,"Flour, corn",usda_sr:169695,
+A504,"Flour, gram",usda_sr:174288,besan
+A505,"Flour, rice",usda_sr:169714,
+A507,"Pasta, dried",usda_sr:169736,
+A508,Porridge oats,usda_sr:173904,
+A510,Cracked wheat,usda_sr:170688,bulgur
+A502,Couscous,usda_sr:169699,
+A514,Buckwheat groats,usda_sr:170685,
+B503,"Flour, soya",usda_sr:174273,
+B501,Beansprouts mung boiled,usda_sr:169137,
+B509,Chickpeas raw,usda_sr:173756,
+B500,Kabuli chickpeas raw,usda_sr:173756,
+B506,Tofu,usda_sr:172476,
+B504,"Peanut butter, smooth",usda_sr:172470,
+K500,Baking powder,usda_sr:172804,
+K501,Bicarbonate of soda,usda_sr:175040,
+K506,"Stock cubes, chicken",usda_sr:174566,always used as liquid stock (cups/ml): cubes prepared with water
+K507,"Stock cubes, vegetable",usda_sr:171583,always used as liquid stock: vegetable broth ready to serve
+V501,Cocoa powder,usda_sr:169593,
+V502,"Coffee, instant powder",usda_sr:171893,
+V510,"Tea, black, infusion",usda_sr:173227,
+V509,Pineapple juice,usda_sr:169947,
+E518,Orange juice,usda_sr:169098,
+E513,Raspberries,usda_sr:167755,
+E515,Gooseberries,usda_sr:173030,
+E514,Dried mango,usda_sr:169091,
+E502,Kiwi fruit,usda_sr:168153,
+E500,Blueberries,usda_sr:171711,
+E501,Cranberries,usda_sr:171722,
+E505,Redcurrants,usda_sr:173964,
+D503,Sweetcorn kernels,usda_sr:169998,
+C500,Broccoli,usda_sr:170379,
+C502,Watercress,usda_sr:170068,
+D500,Kale,usda_sr:168421,
+F501,Turnip,usda_sr:170465,
+F500,Beetroot,usda_sr:169145,
+O502,"Lamb, mince, raw",usda_sr:174370,
+O501,Ham,usda_sr:173864,
+H501,Coconut milk,usda_sr:170172,real coconut milk as the recipes mean it; INDB seems to have used the UK 'coconut milk' (the thin liquid inside the nut) so its kcal for these dishes may be low
+H508,Coconut water,usda_sr:170174,
+H503,Lotus seeds dried,usda_sr:170149,
+H506,Chia seeds,usda_sr:170554,
+H502,Hazelnuts,usda_sr:170581,
+X501,Soy sauce,usda_sr:174278,
+X503,Tomato ketchup,usda_sr:168556,
+X504,Tomato puree,usda_sr:170460,
+X507,Worcestershire sauce,usda_sr:171610,
+X510,French dressing,usda_sr:171416,
+X509,Thousand island dressing,usda_sr:171402,
+W504,Jam,usda_sr:169641,
+W505,Strawberry jam,usda_sr:169641,
+W502,Marmalade,usda_sr:168819,
+G535,Amchur (dry mango powder),usda_sr:169091,approximation: dried mango
+K504,Gelatine,usda_sr:169599,unsweetened gelatin powder
+E511,"Cherries, glace",usda_sr:167766,approximation: maraschino cherries
+X505,"Tomato sauce, homemade",usda_sr:170054,
+O064,"Mutton, muscle",ifct:O001,IFCT goat shoulder meat
+H505,Mixed nuts,usda_sr:170585,dry roasted without salt
+E509,"Pears, canned in juice",usda_sr:169936,
+E516,"Fruit cocktail, canned",usda_sr:174668,juice pack
+E504,West Indian cherries,usda_sr:171686,acerola
+E506,Sultanas,usda_sr:168164,golden raisins
+E507,Amla,ifct:E021,IFCT gooseberry (amla)
+V503,Cola,usda_sr:174852,
+V500,Apple juice,usda_sr:173933,
+V504,"Drinking chocolate, powder",usda_sr:173182,
+V511,"Tea, green, infusion",usda_sr:171917,
+H507,Almond milk,usda_sr:174832,
+H500,Melon seeds,usda_sr:169407,approximation: watermelon seed kernels
+U502,"Bread, brown, toasted",usda_sr:172689,
+U506,Hot dog buns,usda_sr:172796,
+U507,White hamburger buns,usda_sr:172796,
+U508,Whole wheat hamburger buns,usda_sr:174090,
+U500,"Biscuits, digestive",usda_sr:174957,approximation: graham crackers
+U505,Cream of tartar,usda_sr:175041,
+O500,"Bacon rashers, raw",usda_sr:168277,
+O503,Salami,usda_sr:174603,
+B505,"Peanuts, dry roasted",usda_sr:173806,
+B507,Black beans,usda_sr:175188,canned (453 g = one can)
+D508,"Beans, broad, whole, raw",usda_sr:170377,fresh broad beans (UK whole raw means fresh)
+D502,"Tomatoes, cherry",usda_sr:170457,
+D504,"Olives, green",usda_sr:169096,
+D507,Pitted black olives,usda_sr:169094,
+D505,"Gherkins, pickled",usda_sr:168558,
+D506,"Pickle, sweet",usda_sr:168561,
+X518,Creamed corn,usda_sr:169215,
+X515,Dijon mustard,usda_sr:172234,approximation: prepared yellow mustard
+X514,Mustard sauce,usda_sr:172234,approximation: prepared yellow mustard
+X506,"White sauce, homemade",usda_sr:174525,
+L500,"Cheese, Cheddar",usda_sr:173414,
+L509,"Milk, evaporated, light",usda_sr:171302,
+L510,"Milk, skimmed, dried",usda_sr:172195,
+I508,"Sago, raw",usda_sr:169717,tapioca pearls
+I510,"Gum drops, sugar free",usda_sr:169061,
+I511,Tutti frutti,usda_sr:167781,candied fruit
+K503,Custard powder,usda_sr:169698,approximation: cornstarch
+K502,"Spirits, 40%",usda_sr:171919,
+W501,"Jelly, made with water",usda_sr:169596,
+G534,Yeast extract,usda_sr:167717,
+G548,Ginger juice,usda_sr:169231,approximation: raw ginger
+A509,Black rice,usda_sr:169703,approximation: brown rice
+A513,Almond flour,usda_sr:170567,ground almonds

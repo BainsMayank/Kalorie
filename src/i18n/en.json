@@ -1,0 +1,125 @@
+{
+  "app": {
+    "loading": "Getting things ready…",
+    "startupProblem": "Kalorie couldn't open your saved data. Please close the app and open it again."
+  },
+  "tabs": {
+    "today": "Today",
+    "log": "Log",
+    "trends": "Trends",
+    "profile": "Profile"
+  },
+  "today": {
+    "placeholder": "Your day at a glance will show up here."
+  },
+  "log": {
+    "placeholder": "Your meals for today, and past days from a calendar, will show up here."
+  },
+  "trends": {
+    "placeholder": "Patterns over the week and month will show up here."
+  },
+  "profile": {
+    "appearance": "Appearance",
+    "theme": "Theme",
+    "themeOptions": {
+      "system": "Same as phone",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "moreSoon": "Your goals, account and other options will show up here."
+  },
+  "search": {
+    "title": "Find a food",
+    "placeholder": "Search foods, like dal, roti or dahi",
+    "label": "Search foods",
+    "clear": "Clear search",
+    "hint": "Type a food in English or Hindi. Daal, bhindi and dahi all work, and small typos are fine.",
+    "noResults": "Nothing found for “{{query}}”. Try another spelling or a shorter word.",
+    "unavailable": "The food list couldn't be opened. Please close the app and open it again.",
+    "resultPortion": "{{portion}} · {{kcal}} kcal"
+  },
+  "food": {
+    "title": "Food",
+    "notFound": "This food couldn't be found.",
+    "portion": "{{qty}} {{unit}}",
+    "unit": "Unit",
+    "amount": "Amount",
+    "decrease": "Less",
+    "increase": "More",
+    "grams": "≈ {{grams}} g",
+    "kcal": "{{value}} kcal",
+    "amountWithUnit": "{{value}} {{unit}}",
+    "thisPortion": "This portion",
+    "per100g": "Per 100 g",
+    "unknown": "—",
+    "unknownNote": "— means the data for this food doesn’t include it.",
+    "energyEstimated": "Energy is worked out from protein, carbs and fat.",
+    "source": "From {{source}}",
+    "groups": {
+      "macro": "Energy and macros",
+      "other": "Fats, fibre and sugar",
+      "mineral": "Minerals",
+      "vitamin": "Vitamins"
+    }
+  },
+  "sources": {
+    "short": {
+      "indb": "INDB",
+      "ifct": "IFCT",
+      "usda": "USDA"
+    },
+    "long": {
+      "indb": "Indian Nutrient Databank",
+      "ifct": "Indian Food Composition Tables 2017",
+      "usda": "USDA FoodData Central"
+    }
+  },
+  "nutrients": {
+    "energy_kcal": "Energy",
+    "protein_g": "Protein",
+    "carb_g": "Carbohydrate",
+    "fat_g": "Total fat",
+    "fibre_g": "Dietary fibre",
+    "sugar_g": "Total sugars",
+    "sat_fat_g": "Saturated fat",
+    "mufa_g": "Monounsaturated fat",
+    "pufa_g": "Polyunsaturated fat",
+    "trans_fat_g": "Trans fat",
+    "cholesterol_mg": "Cholesterol",
+    "sodium_mg": "Sodium",
+    "potassium_mg": "Potassium",
+    "calcium_mg": "Calcium",
+    "iron_mg": "Iron",
+    "magnesium_mg": "Magnesium",
+    "phosphorus_mg": "Phosphorus",
+    "zinc_mg": "Zinc",
+    "copper_mg": "Copper",
+    "manganese_mg": "Manganese",
+    "selenium_ug": "Selenium",
+    "iodine_ug": "Iodine",
+    "vit_a_ug": "Vitamin A",
+    "thiamine_mg": "Vitamin B1 (thiamine)",
+    "riboflavin_mg": "Vitamin B2 (riboflavin)",
+    "niacin_mg": "Vitamin B3 (niacin)",
+    "pantothenic_mg": "Vitamin B5 (pantothenic acid)",
+    "vit_b6_mg": "Vitamin B6",
+    "biotin_ug": "Vitamin B7 (biotin)",
+    "folate_ug": "Vitamin B9 (folate)",
+    "vit_b12_ug": "Vitamin B12",
+    "vit_c_mg": "Vitamin C",
+    "vit_d_ug": "Vitamin D",
+    "vit_e_mg": "Vitamin E",
+    "vit_k_ug": "Vitamin K"
+  },
+  "nutrientUnits": {
+    "kcal": "kcal",
+    "g": "g",
+    "mg": "mg",
+    "µg": "µg"
+  },
+  "macros": {
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fat": "Fat"
+  }
+}

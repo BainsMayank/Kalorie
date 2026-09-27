@@ -1,0 +1,599 @@
+# Search synonyms. Rows with the same `group` mean the same thing.
+# If any term of a group appears as a whole word in a food's English name, the food gets every
+# other term of that group as a search synonym (so "Ladies finger" is found by "bhindi").
+# kind: english | hindi | spelling (another Roman spelling) | regional (Tamil, Telugu, Bengali…)
+# Keep terms lowercase. Avoid short words that mean other things (e.g. "sev" is apple AND a snack).
+group,term,kind
+dal,dal,hindi
+dal,daal,spelling
+dal,dhal,spelling
+dal,dahl,spelling
+dal,lentils,english
+toor,arhar,hindi
+toor,toor,hindi
+toor,tur,spelling
+toor,tuvar,spelling
+toor,toovar,spelling
+toor,red gram,english
+toor,pigeon pea,english
+masoor,masoor,hindi
+masoor,masur,spelling
+masoor,red lentil,english
+masoor,lentil,english
+moong,moong,hindi
+moong,mung,spelling
+moong,mug,spelling
+moong,green gram,english
+moong,mung bean,english
+urad,urad,hindi
+urad,urd,spelling
+urad,udad,spelling
+urad,black gram,english
+urad,ulundu,regional
+urad,minapa,regional
+chana,chana,hindi
+chana,channa,spelling
+chana,chane,spelling
+chana,chole,hindi
+chana,chhole,spelling
+chana,bengal gram,english
+chana,chickpea,english
+chana,garbanzo,english
+rajma,rajma,hindi
+rajma,rajmah,spelling
+rajma,kidney bean,english
+lobia,lobia,hindi
+lobia,lobhia,spelling
+lobia,chawli,regional
+lobia,cowpea,english
+lobia,black eyed peas,english
+kulthi,kulthi,hindi
+kulthi,horse gram,english
+kulthi,horsegram,spelling
+kulthi,kollu,regional
+besan,besan,hindi
+besan,gram flour,english
+besan,chickpea flour,english
+moth,moth bean,english
+moth,matki,regional
+soya,soya,english
+soya,soy,english
+soya,soyabean,spelling
+soya,soybean,spelling
+soya,nutrinugget,english
+soya,soya chunks,english
+rice,rice,english
+rice,chawal,hindi
+rice,chaawal,spelling
+rice,chaval,spelling
+rice,bhaat,hindi
+rice,annam,regional
+rice,sadam,regional
+rice,arisi,regional
+poha,poha,hindi
+poha,pohe,spelling
+poha,chiwda,hindi
+poha,chivda,spelling
+poha,chirwa,spelling
+poha,aval,regional
+poha,rice flakes,english
+poha,flattened rice,english
+poha,beaten rice,english
+murmura,murmura,hindi
+murmura,murmure,spelling
+murmura,kurmura,spelling
+murmura,muri,regional
+murmura,moori,regional
+murmura,puffed rice,english
+wheat,wheat,english
+wheat,gehun,hindi
+wheat,gehu,spelling
+atta,atta,hindi
+atta,aata,spelling
+atta,whole wheat flour,english
+maida,maida,hindi
+maida,refined flour,english
+maida,all purpose flour,english
+suji,suji,hindi
+suji,sooji,spelling
+suji,semolina,english
+suji,rava,regional
+suji,rawa,spelling
+dalia,dalia,hindi
+dalia,daliya,spelling
+dalia,broken wheat,english
+dalia,cracked wheat,english
+dalia,bulgur,english
+sevai,vermicelli,english
+sevai,sevai,hindi
+sevai,seviyan,spelling
+sevai,semiya,regional
+bajra,bajra,hindi
+bajra,bajri,spelling
+bajra,pearl millet,english
+bajra,kambu,regional
+jowar,jowar,hindi
+jowar,jawar,spelling
+jowar,jola,regional
+jowar,sorghum,english
+ragi,ragi,hindi
+ragi,nachni,regional
+ragi,nachani,spelling
+ragi,finger millet,english
+ragi,mandua,regional
+maize,maize,english
+maize,corn,english
+maize,makka,hindi
+maize,makki,hindi
+maize,bhutta,hindi
+barley,barley,english
+barley,jau,hindi
+sabudana,sabudana,hindi
+sabudana,saboodana,spelling
+sabudana,sago,english
+sabudana,tapioca pearls,english
+roti,roti,hindi
+roti,chapati,hindi
+roti,chapatti,spelling
+roti,chappati,spelling
+roti,phulka,hindi
+roti,fulka,spelling
+roti,rotli,regional
+paratha,paratha,hindi
+paratha,parantha,spelling
+paratha,parotta,regional
+paratha,prantha,spelling
+poori,poori,hindi
+poori,puri,spelling
+poori,poodi,spelling
+naan,naan,hindi
+naan,nan,spelling
+bhatura,bhatura,hindi
+bhatura,bhature,spelling
+bhatura,bhatoora,spelling
+dosa,dosa,regional
+dosa,dosai,regional
+dosa,dose,spelling
+idli,idli,regional
+idli,idly,spelling
+uttapam,uttapam,regional
+uttapam,uthappam,spelling
+uttapam,oothappam,spelling
+upma,upma,regional
+upma,uppuma,spelling
+upma,uppittu,regional
+khichdi,khichdi,hindi
+khichdi,khichri,spelling
+khichdi,khichadi,spelling
+khichdi,khitchdi,spelling
+khichdi,khichuri,regional
+pulao,pulao,hindi
+pulao,pulav,spelling
+pulao,pilaf,english
+biryani,biryani,hindi
+biryani,biriyani,spelling
+biryani,biriani,spelling
+biryani,briyani,spelling
+sambar,sambar,regional
+sambar,sambhar,spelling
+sambar,saambar,spelling
+rasam,rasam,regional
+rasam,saaru,regional
+rasam,charu,regional
+kadhi,kadhi,hindi
+kadhi,kadi,spelling
+kadhi,karhi,spelling
+chaat,chaat,hindi
+chaat,chat,spelling
+pakora,pakora,hindi
+pakora,pakoda,spelling
+pakora,pakodies,spelling
+pakora,bhajiya,regional
+pakora,fritter,english
+samosa,samosa,hindi
+samosa,samoosa,spelling
+samosa,singara,regional
+vada,vada,regional
+vada,wada,spelling
+vada,vadai,regional
+dhokla,dhokla,regional
+dhokla,khaman,regional
+okra,okra,english
+okra,bhindi,hindi
+okra,bhendi,spelling
+okra,lady finger,english
+okra,ladies finger,english
+okra,vendakkai,regional
+brinjal,brinjal,english
+brinjal,baingan,hindi
+brinjal,baigan,spelling
+brinjal,eggplant,english
+brinjal,aubergine,english
+brinjal,vangi,regional
+potato,potato,english
+potato,aloo,hindi
+potato,alu,spelling
+potato,aaloo,spelling
+potato,batata,regional
+cauliflower,cauliflower,english
+cauliflower,gobi,hindi
+cauliflower,gobhi,spelling
+cauliflower,phool gobi,hindi
+cauliflower,phoolgobhi,spelling
+cabbage,cabbage,english
+cabbage,patta gobi,hindi
+cabbage,pattagobhi,spelling
+cabbage,bandh gobi,hindi
+spinach,spinach,english
+spinach,palak,hindi
+spinach,paalak,spelling
+fenugreek,fenugreek,english
+fenugreek,methi,hindi
+peas,peas,english
+peas,matar,hindi
+peas,mutter,spelling
+peas,mattar,spelling
+bottle gourd,bottle gourd,english
+bottle gourd,lauki,hindi
+bottle gourd,ghiya,hindi
+bottle gourd,doodhi,regional
+bottle gourd,dudhi,spelling
+bottle gourd,lowki,spelling
+bitter gourd,bitter gourd,english
+bitter gourd,bittergourd,spelling
+bitter gourd,karela,hindi
+bitter gourd,karele,spelling
+bitter gourd,pavakkai,regional
+ridge gourd,ridge gourd,english
+ridge gourd,torai,hindi
+ridge gourd,turai,spelling
+ridge gourd,tori,spelling
+tinda,tinda,hindi
+tinda,tinde,spelling
+tinda,round gourd,english
+tinda,apple gourd,english
+pumpkin,pumpkin,english
+pumpkin,kaddu,hindi
+pumpkin,kaddoo,spelling
+pumpkin,bhopla,regional
+tomato,tomato,english
+tomato,tamatar,hindi
+tomato,tamater,spelling
+tomato,tamator,spelling
+onion,onion,english
+onion,pyaz,hindi
+onion,pyaaz,spelling
+onion,kanda,regional
+onion,vengayam,regional
+garlic,garlic,english
+garlic,lehsun,hindi
+garlic,lahsun,spelling
+garlic,lehsan,spelling
+garlic,lahasun,spelling
+garlic,poondu,regional
+ginger,ginger,english
+ginger,adrak,hindi
+ginger,adarak,spelling
+ginger,inji,regional
+chilli,chilli,english
+chilli,chili,spelling
+chilli,chillies,english
+chilli,mirchi,hindi
+chilli,mirch,hindi
+coriander,coriander,english
+coriander,dhania,hindi
+coriander,dhaniya,spelling
+coriander,cilantro,english
+coriander,kothimbir,regional
+mint,mint,english
+mint,pudina,hindi
+mint,pudinay,spelling
+carrot,carrot,english
+carrot,gajar,hindi
+carrot,gajjar,spelling
+radish,radish,english
+radish,mooli,hindi
+radish,muli,spelling
+beetroot,beetroot,english
+beetroot,chukandar,hindi
+cucumber,cucumber,english
+cucumber,kheera,hindi
+cucumber,khira,spelling
+cucumber,kakdi,hindi
+capsicum,capsicum,english
+capsicum,shimla mirch,hindi
+capsicum,bell pepper,english
+colocasia,colocasia,english
+colocasia,arbi,hindi
+colocasia,arvi,spelling
+colocasia,arwi,spelling
+colocasia,taro,english
+yam,yam,english
+yam,suran,hindi
+yam,zimikand,hindi
+yam,jimikand,spelling
+jackfruit,jackfruit,english
+jackfruit,jack fruit,spelling
+jackfruit,kathal,hindi
+jackfruit,chakka,regional
+drumstick,drumstick,english
+drumstick,moringa,english
+drumstick,sahjan,hindi
+drumstick,saijan,spelling
+drumstick,murungakkai,regional
+mustard greens,mustard leaves,english
+mustard greens,sarson ka saag,hindi
+mustard greens,saag,hindi
+amaranth,amaranth,english
+amaranth,chaulai,hindi
+amaranth,rajgira,hindi
+amaranth,ramdana,hindi
+cluster beans,cluster beans,english
+cluster beans,gawar,hindi
+cluster beans,guar,spelling
+mushroom,mushroom,english
+mushroom,khumb,hindi
+mushroom,khumbi,spelling
+lotus stem,lotus stem,english
+lotus stem,kamal kakdi,hindi
+lotus stem,bhen,regional
+lotus stem,nadru,regional
+sweet potato,sweet potato,english
+sweet potato,shakarkand,hindi
+sweet potato,shakarkandi,spelling
+plantain,plantain,english
+plantain,raw banana,english
+plantain,kacha kela,hindi
+banana,banana,english
+banana,kela,hindi
+banana,kele,spelling
+mango,mango,english
+mango,aam,hindi
+mango,keri,regional
+mango,kairi,regional
+apple,apple,english
+apple,seb,hindi
+guava,guava,english
+guava,amrood,hindi
+guava,amrud,spelling
+guava,peru,regional
+papaya,papaya,english
+papaya,papita,hindi
+papaya,papeeta,spelling
+orange,orange,english
+orange,santra,hindi
+orange,santara,spelling
+orange,narangi,hindi
+sweet lime,sweet lime,english
+sweet lime,mosambi,hindi
+sweet lime,musambi,spelling
+pomegranate,pomegranate,english
+pomegranate,anar,hindi
+pomegranate,anaar,spelling
+grapes,grapes,english
+grapes,angoor,hindi
+grapes,angur,spelling
+watermelon,watermelon,english
+watermelon,water melon,spelling
+watermelon,tarbooz,hindi
+watermelon,tarbuj,spelling
+muskmelon,muskmelon,english
+muskmelon,musk melon,spelling
+muskmelon,kharbuja,hindi
+muskmelon,kharbooja,spelling
+pineapple,pineapple,english
+pineapple,ananas,hindi
+sapota,sapota,english
+sapota,chikoo,hindi
+sapota,chiku,spelling
+custard apple,custard apple,english
+custard apple,sitaphal,hindi
+custard apple,sharifa,hindi
+jamun,jamun,hindi
+jamun,java plum,english
+amla,amla,hindi
+amla,awla,spelling
+amla,indian gooseberry,english
+amla,gooseberry,english
+lemon,lemon,english
+lemon,nimbu,hindi
+lemon,nimboo,spelling
+lemon,neembu,spelling
+coconut,coconut,english
+coconut,nariyal,hindi
+coconut,naariyal,spelling
+coconut,thengai,regional
+dates,dates,english
+dates,khajur,hindi
+dates,khajoor,spelling
+fig,fig,english
+fig,anjeer,hindi
+fig,anjir,spelling
+raisins,raisins,english
+raisins,kishmish,hindi
+tamarind,tamarind,english
+tamarind,imli,hindi
+tamarind,imali,spelling
+jaggery,jaggery,english
+jaggery,gud,hindi
+jaggery,gur,spelling
+jaggery,vellam,regional
+jaggery,bellam,regional
+sugar,sugar,english
+sugar,cheeni,hindi
+sugar,chini,spelling
+honey,honey,english
+honey,shahad,hindi
+honey,shehad,spelling
+curd,curd,english
+curd,dahi,hindi
+curd,yogurt,english
+curd,yoghurt,spelling
+curd,doi,regional
+curd,thayir,regional
+curd,perugu,regional
+buttermilk,buttermilk,english
+buttermilk,chaas,hindi
+buttermilk,chaach,spelling
+buttermilk,chhachh,spelling
+buttermilk,mattha,hindi
+buttermilk,majjige,regional
+milk,milk,english
+milk,doodh,hindi
+milk,dudh,spelling
+paneer,paneer,hindi
+paneer,panir,spelling
+paneer,panner,spelling
+paneer,paaner,spelling
+paneer,cottage cheese,english
+paneer,chhena,regional
+paneer,chenna,spelling
+ghee,ghee,hindi
+ghee,ghi,spelling
+ghee,clarified butter,english
+butter,butter,english
+butter,makhan,hindi
+butter,makkhan,spelling
+khoa,khoa,hindi
+khoa,khoya,spelling
+khoa,mawa,hindi
+lassi,lassi,hindi
+lassi,lasi,spelling
+tea,tea,english
+tea,chai,hindi
+tea,chaha,regional
+coffee,coffee,english
+coffee,kaapi,regional
+coffee,kapi,spelling
+almond,almond,english
+almond,badam,hindi
+almond,badaam,spelling
+cashew,cashew,english
+cashew,cashewnut,spelling
+cashew,kaju,hindi
+peanut,peanut,english
+peanut,groundnut,english
+peanut,ground nut,spelling
+peanut,moongphali,hindi
+peanut,moongfali,spelling
+peanut,mungfali,spelling
+peanut,shengdana,regional
+walnut,walnut,english
+walnut,akhrot,hindi
+pistachio,pistachio,english
+pistachio,pista,hindi
+sesame,sesame,english
+sesame,til,hindi
+sesame,gingelly,english
+sesame,ellu,regional
+flaxseed,flaxseed,english
+flaxseed,linseed,english
+flaxseed,alsi,hindi
+makhana,makhana,hindi
+makhana,fox nut,english
+makhana,lotus seed,english
+turmeric,turmeric,english
+turmeric,haldi,hindi
+turmeric,manjal,regional
+cumin,cumin,english
+cumin,jeera,hindi
+cumin,jira,spelling
+cumin,zeera,spelling
+ajwain,ajwain,hindi
+ajwain,ajowan,spelling
+ajwain,carom,english
+ajwain,omum,english
+asafoetida,asafoetida,english
+asafoetida,hing,hindi
+cardamom,cardamom,english
+cardamom,elaichi,hindi
+cardamom,elaychi,spelling
+cardamom,ilaichi,spelling
+cloves,cloves,english
+cloves,laung,hindi
+cloves,lavang,spelling
+black pepper,black pepper,english
+black pepper,kali mirch,hindi
+black pepper,kalimirchi,spelling
+cinnamon,cinnamon,english
+cinnamon,dalchini,hindi
+fennel,fennel,english
+fennel,saunf,hindi
+fennel,sounf,spelling
+chicken,chicken,english
+chicken,murgh,hindi
+chicken,murg,spelling
+chicken,kozhi,regional
+mutton,mutton,english
+mutton,goat,english
+mutton,gosht,hindi
+fish,fish,english
+fish,machli,hindi
+fish,machhli,spelling
+fish,macchi,spelling
+fish,meen,regional
+prawn,prawn,english
+prawn,shrimp,english
+prawn,jhinga,hindi
+prawn,chingri,regional
+egg,egg,english
+egg,anda,hindi
+egg,ande,hindi
+egg,mutta,regional
+keema,keema,hindi
+keema,kheema,spelling
+keema,qeema,spelling
+keema,minced meat,english
+keema,mince,english
+sabzi,sabzi,hindi
+sabzi,sabji,spelling
+sabzi,subzi,spelling
+sabzi,subji,spelling
+halwa,halwa,hindi
+halwa,halva,spelling
+halwa,sheera,regional
+kheer,kheer,hindi
+kheer,khir,spelling
+kheer,payasam,regional
+kheer,payesh,regional
+ladoo,ladoo,hindi
+ladoo,laddoo,spelling
+ladoo,laddu,spelling
+ladoo,ladu,spelling
+burfi,burfi,hindi
+burfi,barfi,spelling
+gulab jamun,gulab jamun,hindi
+gulab jamun,gulabjamun,spelling
+rasgulla,rasgulla,hindi
+rasgulla,rasagola,regional
+rasgulla,rosogolla,regional
+chutney,chutney,hindi
+chutney,chatni,spelling
+chutney,chutni,spelling
+chutney,pachadi,regional
+pickle,pickle,english
+pickle,achar,hindi
+pickle,achaar,spelling
+pickle,aachar,spelling
+papad,papad,hindi
+papad,papadum,english
+papad,pappadam,regional
+papad,appalam,regional
+raita,raita,hindi
+raita,rayta,spelling
+noodles,noodles,english
+noodles,chowmein,english
+noodles,chow mein,spelling
+omelette,omelette,english
+omelette,omelet,spelling
+omelette,omlet,spelling
+omelette,amlet,spelling
+sharbat,sharbat,hindi
+sharbat,sherbet,spelling
+sharbat,sarbat,spelling
+coconut water,coconut water,english
+coconut water,nariyal pani,hindi
+coconut water,tender coconut,english
+coconut water,elaneer,regional
+sugarcane,sugarcane,english
+sugarcane,ganna,hindi

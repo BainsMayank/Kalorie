@@ -1,0 +1,5 @@
+# Fixes for foods the automatic category rules put in the wrong category.
+# ref is "<source>:<source_code>". Categories are listed in category_units.csv.
+ref,category,note
+indb:ASC131,condiment,Pasta spinach sauce is a sauce (not a pasta dish)
+indb:ASC132,condiment,Pasta cheese sauce is a sauce (not a pasta dish)

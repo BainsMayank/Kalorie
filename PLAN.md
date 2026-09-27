@@ -10,49 +10,55 @@ See SPEC.md for every screen, table, formula and wording rule referenced here.
 ---
 
 ## Stage 1 — Scaffold
-- [ ] `git init`, first commit with SPEC.md, PLAN.md, CLAUDE.md
-- [ ] Create the Expo app (latest SDK, TypeScript template) in this folder
-- [ ] Set `name: "Kalorie"`, `slug: "kalorie"`, `android.package` and `ios.bundleIdentifier` = `com.mynklabs.kalorie` in app config
-- [ ] Turn on TypeScript `strict`; add a path alias `@/` → `src/`
-- [ ] Create the folder structure from CLAUDE.md (empty `index.ts` files are fine)
-- [ ] expo-router with 4 tabs (Today, History, Trends, More), each showing a placeholder
-- [ ] Theme tokens in `src/theme/` (monochrome base + accent roles, light and dark, SPEC §8.1); follow the system setting
-- [ ] i18next + expo-localization set up with `src/i18n/en.json`; tab titles come from it
-- [ ] jest-expo + React Native Testing Library; one test that renders the Today tab
-- [ ] `.env.example` (empty keys), `.env` and `.env*.local` in `.gitignore`
-- [ ] npm scripts: `test`, `typecheck` (`tsc --noEmit`)
+- [x] `git init`, first commit with SPEC.md, PLAN.md, CLAUDE.md
+- [x] Create the Expo app (SDK 57 — the one Expo Go supports — TypeScript template) in this folder
+- [x] Set `name: "Kalorie"`, `slug: "kalorie"`, `android.package` and `ios.bundleIdentifier` = `com.mynklabs.kalorie` in app config
+- [x] Turn on TypeScript `strict`; add a path alias `@/` → `src/`
+- [x] ESLint (`eslint-config-expo`) + Prettier (`eslint-config-prettier`)
+- [x] Create the folder structure from CLAUDE.md (empty `index.ts` files are fine)
+- [x] expo-router with 4 tabs (Today, Log, Trends, Profile), each showing a placeholder with its name and icon
+- [x] Theme tokens in `src/theme/` (monochrome base + accent roles, light and dark, SPEC §8.1); follow the system setting, with a System / Light / Dark override in Profile
+- [x] i18next + expo-localization set up with `src/i18n/en.json`; tab titles come from it (English only, per SPEC)
+- [x] user.db with expo-sqlite + Drizzle: `babel-plugin-inline-import` approved, migrations run on app start, `settings` table *(moved up from Stage 3)*
+- [x] Zustand settings store (`src/stores/settings.ts`), saved to user.db
+- [x] jest-expo + React Native Testing Library; tests for the settings store, the Today tab and the Profile theme switch
+- [x] `.env.example` (empty keys), `.env` and `.env*.local` in `.gitignore`; `data/raw/` ignored too
+- [x] npm scripts: `test`, `typecheck` (`tsc --noEmit`), `lint`, `format`, `db:generate`
 
 **Done when:** you open the app in Expo Go, see the 4 tabs with English titles, switch your
-phone to dark mode and the app turns dark, and `npm test` passes.
+phone to dark mode and the app turns dark, pick Dark in Profile and it stays dark after
+closing the app, and `npm test` passes.
 
 ## Stage 2 — Food database
-- [ ] Put source files in place: INDB (recipes + ingredients) in `data/raw/indb/`, USDA Foundation + SR Legacy CSVs in `data/raw/usda/`; add `ifct2017` as a dev dependency
-- [ ] Record each source's version and licence in `data/SOURCES.md`
-- [ ] Add dev tools: better-sqlite3, xlsx, csv-parse, tsx
-- [ ] `scripts/build-foods-db/`: read each source → map to the 35 nutrient columns (SPEC §3) → convert units (kJ → kcal, vitamin A RAE, available carbs)
-- [ ] Merge duplicates (priority INDB → IFCT → USDA), keep `source` tag
-- [ ] Load INDB recipe ingredients into `recipe_ingredients`, flag oil/ghee/butter as `is_fat`
-- [ ] Create `data/curated/synonyms.csv` with about 300 common foods (dal/daal/dhal, bhindi/okra/lady finger, dahi/curd/yogurt, …)
-- [ ] Create `data/curated/unit_weights.csv` (katori weights per food type, roti S/M/L, piece weights for idli, samosa, egg, banana, …) and `unit_defaults`
-- [ ] Create `data/curated/rda_icmr_nin_2020.csv` (starting values from SPEC §3.1)
-- [ ] Create `data/curated/thalis.csv` (6 starters) and `slot_suggestions.csv`
-- [ ] Build `foods_fts` with phonetic keys (SPEC §5.1) and the `meta` table
-- [ ] `npm run build:foods` writes `assets/db/foods.db`; print a summary (counts per source, foods with no energy)
-- [ ] Bundle the file with expo-asset / expo-file-system and open it read-only with expo-sqlite
-- [ ] `src/lib/search.ts` (normalise, phonetic key, rank) with unit tests: `daal`→dal, `bhindi`→okra, `dahi`→curd, `chapati`→roti, typo `panner`→paneer
-- [ ] A temporary search screen on the Today tab to try it out (FlashList)
+*Stage 2a (foods.db build) done 2026-09-26; Stage 2b food search done 2026-09-27. Still open: thalis + slot suggestions.*
+- [x] Put source files in place: INDB (`data/raw/Anuvaad_INDB_2024.11.xlsx`), USDA Foundation + SR Legacy CSV folders in `data/raw/`; IFCT from `@ifct2017/compositions@2.0.9` (MIT — `ifct2017` ≥ 2.1 is AGPL)
+- [x] Record each source's version and licence in `data/SOURCES.md`
+- [x] Add dev tools: xlsx (0.20.3, SheetJS CDN), csv-parse, tsx — Node's built-in `node:sqlite` replaces better-sqlite3
+- [x] `scripts/build-foods-db/`: read each source → map to the 35 nutrient columns (SPEC §3) → convert units (kJ → kcal, vitamin A RAE, available carbs)
+- [x] Merge duplicates (priority INDB → IFCT → USDA), keep `source` tag — exact-name matching of same-kind foods + `data/curated/duplicates.csv`
+- [x] Load INDB recipe ingredients into `recipe_ingredients`, flag oil/ghee/butter as `is_fat` — from `data/raw/recipes.xlsx`; Anuvaad's own ingredient codes linked via `data/curated/indb_ingredients.csv` (98% of rows)
+- [x] Create `data/curated/synonyms.csv` (591 terms in 157 groups: dal/daal/dhal, bhindi/okra/lady finger, dahi/curd/yogurt, …) — plus IFCT Hindi/regional names and INDB Hindi names automatically
+- [x] Create `data/curated/unit_weights.csv` (roti S/M/L, piece weights for egg, banana, …), `category_units.csv` (units + density per category), `densities.csv`, and `unit_defaults`
+- [x] Create `data/curated/rda_icmr_nin_2020.csv` (starting values from SPEC §3.1)
+- [ ] Create `data/curated/thalis.csv` (6 starters) and `slot_suggestions.csv` (tables exist in foods.db, empty for now)
+- [x] Build `foods_fts` with phonetic keys (SPEC §5.1) and the `meta` table
+- [x] `npm run build:foods` writes `assets/db/foods.db`; print a summary (counts per source, foods with no energy, missing macros, 10 spot checks)
+- [x] Bundle the file with expo-asset / expo-file-system and open it read-only with expo-sqlite (check FTS5 at startup) — copied on first launch, replaced when the bundled file's hash changes; `PRAGMA query_only`; `finalizeUnusedStatementsBeforeClosing: false` avoids an expo-sqlite crash on reload
+- [x] `src/lib/search.ts` (normalise, phonetic key, rank, typo pass) + `src/db/foods/search.ts`, with tests on the real foods.db: `daal`/`dhal`→dal, `bhindi`→okra, `dahi`/`curd`→plain yogurt, `chapati`→roti, `panner`→paneer, typos `biryni`, `samoza`, `gulab jamon` — plain curd exists only in USDA, so `data/curated/search_pins.csv` (new `search_pins` table, db_version 2) puts it first
+- [x] A temporary search screen to try it out (FlashList) — in the **Log** tab, as asked; debounced 150 ms; name, source tag, usual portion + kcal
+- [x] Food detail screen (`app/food/[id].tsx`): nutrients per 100 g and for the chosen portion, unit chips + quantity stepper (1 katori, 2 roti, 150 g…); no logging yet
 
 **Done when:** on your phone you type `daal`, `bhindi`, `dahi` and `panner`, and each shows
 the right Indian food first with an INDB or IFCT tag, results appear as you type with no
 visible lag, and the tests pass.
 
 ## Stage 3 — Logging
-- [ ] Ask the user to approve `babel-plugin-inline-import` (Drizzle's expo migrations need it) or pick another migration approach
-- [ ] Drizzle schema for user.db (SPEC §4.2) + first migration with drizzle-kit; run migrations on app start
-- [ ] Seed the 4 default meal slots and settings
+- [x] ~~Approve `babel-plugin-inline-import`~~ — done in Stage 1
+- [ ] Rest of the Drizzle schema for user.db (SPEC §4.2) + a new migration (`npm run db:generate`); the migration runner and `settings` table already exist from Stage 1
+- [ ] Seed the 4 default meal slots and default settings
 - [ ] `src/lib/day.ts`: `logicalDay` (4 am cutoff) and `autoSlot` + tests (midnight wrap, 3:59 am → previous day)
-- [ ] `src/lib/units.ts`: `gramsPerUnit`, `unitsForFood` + tests (katori dal, medium roti, tsp ghee, ml milk)
-- [ ] `src/lib/nutrition.ts`: entry and day totals from grams (SPEC §5.3) + tests
+- [ ] `src/lib/units.ts`: `gramsPerUnit`, `unitsForFood` + tests (katori dal, medium roti, tsp ghee, ml milk) — *`gramsPerUnit`, `quantityStep`, `quantityForNewUnit` done in Stage 2b; units per food are read by `getFoodDetail`*
+- [ ] `src/lib/nutrition.ts`: entry and day totals from grams (SPEC §5.3) + tests — *`nutrientsForGrams` done in Stage 2b*
 - [ ] Add food modal: slot chip, search, Recent / Favourites / Suggested tabs (SPEC §2.3, §5.9)
 - [ ] Portion sheet: qty stepper, unit chips, grams preview, live kcal/macros, Log button, haptic tick
 - [ ] Quick add screen
@@ -109,7 +115,7 @@ waits in the Pending card and is looked up when you're back online, and typing a
 hand works.
 
 ## Stage 7 — Recipes, oil adjuster, thalis
-- [ ] `src/lib/oil.ts`: recipe-based and no-recipe adjuster (SPEC §5.5) + tests (dal tadka less/normal/more; fat can't go below zero)
+- [ ] `src/lib/oil.ts`: recipe-based and no-recipe adjuster (SPEC §5.5) + tests (dal tadka less/normal/more; fat can't go below zero) — *recipe-based `oilAdjustedPer100` done in Stage 2a (used by the build report); no-recipe path still to do*
 - [ ] Oil/ghee Less · Normal · More on the portion sheet for eligible foods; stored as `oil_level`
 - [ ] Recipe builder (ingredients, qty/unit, fat flag, cooked weight, servings) → saved as a food with per-100 g values
 - [ ] Custom food create/edit with custom units
@@ -120,9 +126,9 @@ hand works.
 to "More" raises the calories by a believable amount, and logging the North Indian thali
 fills Lunch in one tap and Undo removes all of it.
 
-## Stage 8 — History, weight, water
+## Stage 8 — Log calendar, weight, water
 - [ ] `src/lib/adherence.ts` (SPEC §5.6) + tests
-- [ ] History calendar with coloured dots + legend; tap → Day detail (editable)
+- [ ] Log tab: calendar with coloured dots + legend; tap a day → that day's timeline (editable)
 - [ ] Trends tab: Week/Month calories bars with target line, macro averages
 - [ ] Weight: add/edit, `src/lib/trend.ts` EMA (SPEC §5.7) + tests, line chart with dots + trend line
 - [ ] Water: +1 glass on Today, custom ml, glass/goal settings, bar chart in Trends
@@ -145,7 +151,7 @@ missing data" marker, and nothing is coloured red.
 
 ## Stage 10 — Low-burden features
 - [ ] `src/lib/streak.ts`: forgiving streak with 2 free days per Mon–Sun week (SPEC §5.7) + tests (3rd miss ends it, today not yet logged doesn't break it)
-- [ ] Streak chip on Today; streak summary in History
+- [ ] Streak chip on Today; streak summary in Log
 - [ ] Hide-numbers mode everywhere (SPEC §8.3), including word bands on the ring
 - [ ] Weekly check-in card (SPEC §8.4)
 - [ ] Time-of-day suggestions scoring polished (SPEC §5.9)
@@ -176,7 +182,7 @@ you shared.
 - [ ] Add expo-secure-store; Open Food Facts account in Settings; *Also share with Open Food Facts* toggle on the label form
 - [ ] App icon, splash screen, monochrome design pass in light and dark
 - [ ] Accessibility: screen-reader labels, font scaling, 48 dp targets, contrast check
-- [ ] Performance: search < 100 ms, Today opens < 1 s on a mid-range Android phone
+- [ ] Performance: search < 100 ms, Today opens < 1 s on a mid-range Android phone — *on a Mac (Node) searches take 1–25 ms; the first typo search reads the word list once*
 - [ ] Error handling: no crashes offline, friendly messages
 - [ ] Confirm data licences in `data/SOURCES.md`; About screen credits
 - [ ] Privacy policy page (data stays on the phone unless you sign in)
@@ -190,3 +196,6 @@ it for a full week without a crash, and at least one says logging feels quick.
 
 ## Stage log
 <!-- One line per finished stage: date — stage — note -->
+2026-09-26 — Stage 1 Scaffold — Expo SDK 57; tabs changed to Today · Log · Trends · Profile (SPEC updated); user.db + Drizzle migrations and the settings store moved up from Stage 3; English only; 11 tests pass.
+2026-09-26 — Stage 2a foods.db — 8,907 foods (INDB 1,014 · IFCT 514 · USDA 7,379), FTS5 search index, 591 synonym terms, units per food, recipe ingredients for all 1,014 INDB dishes (oil control on 712); built with node:sqlite; IFCT via MIT @ifct2017/compositions; 130 tests pass.
+2026-09-27 — Stage 2b food search — foods.db copied on first launch and opened read-only; search by name, Hindi name, synonyms, sound and typos with match-tier ranking + 11 hand-picked pins (db_version 2); Log tab = search screen, food detail with unit picker; fixed an expo-sqlite crash on reload (FTS5 + finalize); yogurt now defaults to katori; 198 tests pass. Thalis still open.

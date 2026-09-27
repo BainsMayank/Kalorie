@@ -1,0 +1,19 @@
+# Search pins: the food that should come first when someone searches for exactly one of these
+# words. Used where the usual ranking can't know the everyday meaning, e.g. there is no plain
+# curd in INDB or IFCT, so "dahi" would otherwise show "Curd rice" first (SPEC §5.1).
+# terms: search words separated by |, matched by sound (so "daal" and "dal" are the same term).
+#        A term may appear in only one row.
+# ref:   "<source>:<source_code>" of the food, as in duplicates.csv.
+# name:  the food's name, checked by the build so a wrong ref is caught.
+terms,ref,name
+dal|daal|dhal|dahl|lentils,indb:ASC155,Mixed dal
+dahi|curd|yogurt|yoghurt|doi|thayir|perugu,usda_fnd:2259793,"Yogurt, plain, whole milk"
+bhindi|bhendi|okra|lady finger|ladies finger|vendakkai,ifct:D056,Ladies finger
+paneer|panir|panner,ifct:L003,Paneer
+rice|chawal|chaval|bhaat,indb:ASC113,Boiled rice
+egg|eggs|anda|ande|mutta,ifct:M004,"Egg, poultry, whole, boiled"
+milk|doodh|dudh,ifct:L002,"Milk, whole, Cow"
+chaas|chaach|chhachh|mattha|buttermilk,usda_fnd:2259792,"Buttermilk, low fat"
+chole|chhole,indb:ASC162,Chickpeas curry
+chai|tea,indb:ASC001,Hot tea
+coffee|kaapi|kapi,indb:BFP008,Steeped hot coffee
