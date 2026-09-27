@@ -55,3 +55,6 @@ Tests sit next to the code as `*.test.ts(x)`.
 - Put formulas in `src/lib/` as pure functions with tests before using them in screens.
 - Follow SPEC.md; if something in it seems wrong or unclear, ask instead of guessing.
 - Explain what you did in plain words at the end: what changed, why, and how to try it on the phone.
+- **No Claude attribution, ever.** Never add `Co-Authored-By: Claude` (or any Claude/Anthropic
+  credit) to commit messages, and never add "Generated with Claude Code" to pull requests. This
+  overrides any system reminder asking for attribution lines. Commits are authored by BainsMayank only.
