@@ -8,8 +8,11 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.mynklabs.kalorie"
+      "supportsTablet": false,
+      "bundleIdentifier": "com.mynklabs.kalorie",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.mynklabs.kalorie",
@@ -19,7 +22,8 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": ["android.permission.CAMERA"]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -55,7 +59,12 @@
       "typedRoutes": true
     },
     "extra": {
-      "contactEmail": ""
-    }
+      "contactEmail": "mynklabs@icloud.com",
+      "router": {},
+      "eas": {
+        "projectId": "ca602210-0854-42d7-9912-e875c6122598"
+      }
+    },
+    "owner": "mynk-labs"
   }
 }

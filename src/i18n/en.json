@@ -11,6 +11,7 @@
   },
   "onboarding": {
     "welcome": "Kalorie helps you notice what you eat. Setup takes under a minute.",
+    "medical": "Kalorie helps you keep track. It isn't medical advice. If you have a health condition, are pregnant or breastfeeding, please check your targets with a doctor or dietitian.",
     "titles": {
       "goal": "What would you like to do?",
       "about": "About you",
@@ -638,6 +639,7 @@
     "title": "About Kalorie",
     "version": "Version {{version}}",
     "tagline": "Free and ad-free. What you log stays on your phone.",
+    "medical": "Kalorie helps you keep track of what you eat. It isn't medical advice and doesn't diagnose or treat anything. For a health condition, pregnancy or a special diet, please talk to a doctor or dietitian.",
     "dataTitle": "Food data and credits",
     "sources": {
       "indb": {

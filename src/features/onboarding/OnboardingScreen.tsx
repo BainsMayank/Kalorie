@@ -197,11 +197,17 @@ export function OnboardingScreen() {
           </Text>
 
           {name === 'goal' && (
-            <GoalPicker
-              goal={draft.goal}
-              pace={draft.pace}
-              onChange={(goal, pace) => change({ goal, pace })}
-            />
+            <>
+              <GoalPicker
+                goal={draft.goal}
+                pace={draft.pace}
+                onChange={(goal, pace) => change({ goal, pace })}
+              />
+              {/* On the first step, so even "Skip — just let me log" passes it. */}
+              <Text style={{ color: colors.textSecondary, fontSize: fontSize.caption }}>
+                {t('onboarding.medical')}
+              </Text>
+            </>
           )}
 
           {name === 'about' && (

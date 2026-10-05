@@ -1,6 +1,7 @@
 // Colour tokens for light and dark mode (SPEC §8.1).
 // The base is monochrome. Accent colours are used only where they carry meaning,
 // and none of them is red: being above a target is never shown as an alarm.
+// colors.test.ts checks every text and accent token against WCAG AA contrast.
 
 export type ColorScheme = 'light' | 'dark';
 
@@ -41,7 +42,7 @@ const light: ColorTokens = {
   border: '#E0E0E0',
   text: '#141414',
   textSecondary: '#595959',
-  iconInactive: '#707070',
+  iconInactive: '#6B6B6B',
   scrim: 'rgba(0, 0, 0, 0.4)',
   cameraOverlay: 'rgba(0, 0, 0, 0.5)',
   onCamera: '#FFFFFF',
@@ -53,8 +54,8 @@ const light: ColorTokens = {
   weight: '#7A4FBF',
   onTrack: '#4E9A6B',
   offTarget: '#5B84C4',
-  notice: '#C98A1B',
-  partial: '#C8C8C8',
+  notice: '#C07A0E',
+  partial: '#8F8F8F',
   onTargetFill: '#CDE8D6',
   nearFill: '#DCE6F6',
   farFill: '#B3C8EA',
@@ -81,7 +82,7 @@ const dark: ColorTokens = {
   onTrack: '#7FC79A',
   offTarget: '#8FB0E0',
   notice: '#E3B35A',
-  partial: '#555555',
+  partial: '#6E6E6E',
   onTargetFill: '#27483A',
   nearFill: '#26344A',
   farFill: '#35507A',

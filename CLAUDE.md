@@ -34,6 +34,7 @@ scripts/build-foods-db/  builds assets/db/foods.db from data/
 scripts/build-licences/  builds the Open-source licences list (npm run build:licences)
 scripts/app-icon/     draws the app icon PNGs into assets/ (Python + Pillow)
 docs/                 privacy policy + account deletion web pages (GitHub Pages)
+store/                Play Store graphics + listing text (listing.md)
 data/raw/             source datasets (INDB, USDA) — not edited by hand
 data/curated/         synonyms, unit weights, RDA, thalis (hand-maintained CSVs)
 assets/db/foods.db    generated, bundled, read-only

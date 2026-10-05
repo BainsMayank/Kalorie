@@ -47,6 +47,7 @@ describe('Onboarding', () => {
   it('works out starting targets, offers a safer number, and saves everything', async () => {
     await render(<OnboardingScreen />);
     expect(screen.getByText(/Setup takes under a minute/)).toBeOnTheScreen();
+    expect(screen.getByText(/isn't medical advice/)).toBeOnTheScreen();
 
     // 1. Goal: lose, steady pace.
     await fireEvent.press(screen.getByRole('radio', { name: /^Lose weight/ }));

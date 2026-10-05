@@ -118,7 +118,7 @@ floor warning, and logging 3 packets of namkeen shows the calm sodium card (no r
 - [x] Offline queue (`barcode_queue`), "Pending lookups" card, retry on app open, return to the app, pull to refresh and *Try again now* — *no network-state library in the stack, so no instant retry the moment Wi-Fi returns*
 - [x] OFF attribution in About (Profile → About & data sources)
 - [x] "Incomplete data" tag + note on the food screen when a food's vitamins or minerals are < 80% known
-- [ ] Put a contact email in app.json `extra.contactEmail` (sent in the Open Food Facts User-Agent; the app ID is sent until then)
+- [x] Put a contact email in app.json `extra.contactEmail` — *mynklabs@icloud.com, 2026-10-05* (sent in the Open Food Facts User-Agent; the app ID is sent until then)
 
 **Done when:** you scan a Parle-G or Maggi packet and it's found and logged, scan the same
 packet in airplane mode and it still works (cached), scan an unknown code offline and it
@@ -224,14 +224,15 @@ the same history; a family member joins with your invite code and finds the cust
 you shared.
 
 ## Stage 12 — Polish and release
+*The step-by-step release checklist (Supabase, EAS, Play Console, closed test, iOS) is in `RELEASE.md`.*
 - [ ] Add expo-secure-store; Open Food Facts account in Settings; *Also share with Open Food Facts* toggle on the label form
 - [ ] App icon, splash screen, monochrome design pass in light and dark — *icon done 2026-10-05: katori in the calorie ring, drawn by `scripts/app-icon/make_icons.py` (replaces Expo's placeholder logo); Android 12+ shows it as the launch screen. A custom splash needs `expo-splash-screen` (not in the stack yet — ask)*
-- [ ] Accessibility: screen-reader labels, font scaling, 48 dp targets, contrast check — *first pass in 10b; still to do: contrast check, a TalkBack/VoiceOver walk-through on a phone*
+- [ ] Accessibility: screen-reader labels, font scaling, 48 dp targets, contrast check — *first pass in 10b; contrast check done 2026-10-05 (`src/theme/colors.test.ts`: text 4.5:1, chart accents 3:1 in both themes; light iconInactive, notice and partial and dark partial adjusted); still to do: a TalkBack/VoiceOver walk-through on a phone*
 - [ ] Performance: search < 100 ms, Today opens < 1 s on a mid-range Android phone — *on a Mac (Node) searches take 1–25 ms; the first typo search reads the word list once*
 - [ ] Error handling: no crashes offline, friendly messages
 - [ ] Confirm data licences in `data/SOURCES.md` (*Open licence questions*); About screen credits — *three answers needed: INDB has no stated licence (ask Anuvaad); IFCT 2017 values and the ICMR-NIN 2020 tables are © ICMR-NIN with a "no reproduction for creating a product without written permission" line (one letter to nin@nic.in). Code libraries checked: all permissive; their notices are on About → Open-source licences (2026-10-05). Emails drafted in `data/permission-requests.md`*
-- [ ] Privacy policy page (data stays on the phone unless you sign in) — *the in-app Privacy screen came with 11a; web pages written 2026-10-05 in `docs/` (privacy, delete-account — Play asks for a deletion link too); still to do: fill in the contact email (`CONTACT_EMAIL`), turn on GitHub Pages (main → /docs)*
-- [ ] EAS Build set up; internal testing track on Play Console; TestFlight if doing iOS
+- [ ] Privacy policy page (data stays on the phone unless you sign in) — *the in-app Privacy screen came with 11a; web pages written 2026-10-05 in `docs/` (privacy, delete-account — Play asks for a deletion link too); contact email mynklabs@icloud.com filled in; still to do: turn on GitHub Pages (main → /docs)*
+- [ ] EAS Build set up; internal testing track on Play Console; TestFlight if doing iOS — *`eas.json` (preview APK, production .aab, build numbers kept by EAS), iOS `supportsTablet: false` + no-encryption flag, "not medical advice" note (About, onboarding), store graphics and listing text in `store/` — 2026-10-05; EAS project linked (`extra.eas.projectId`); still to do: the first builds (RELEASE.md Phases 7–11)*
 - [ ] Final wording and hide-numbers review
 
 **Done when:** family members install Kalorie from the Play Store internal testing link, use

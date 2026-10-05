@@ -61,6 +61,11 @@ export function AboutScreen() {
         <Text style={{ color: colors.text, fontSize: fontSize.body, marginTop: spacing.md }}>
           {t('aboutApp.tagline')}
         </Text>
+        <Text
+          style={{ color: colors.textSecondary, fontSize: fontSize.body, marginTop: spacing.md }}
+        >
+          {t('aboutApp.medical')}
+        </Text>
 
         <Text
           accessibilityRole="header"
