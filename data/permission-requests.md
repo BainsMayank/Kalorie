@@ -55,7 +55,7 @@ their food.
 
 Yours faithfully,
 Mayank Bains
-[contact email]
+mynklabs@icloud.com
 
 ---
 
@@ -100,4 +100,4 @@ Thank you for building and sharing INDB.
 
 Best regards,
 Mayank Bains
-[contact email]
+mynklabs@icloud.com
