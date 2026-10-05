@@ -1,29 +1,35 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { formatHour, formatTime } from '@/i18n/dates';
 import { LOGICAL_DAY_HOURS, withHour, withMinutes } from '@/lib/day';
 import { useTheme } from '@/theme';
 
 const MINUTE_CHOICES = [0, 15, 30, 45] as const;
-const HOURS_PER_ROW = 6;
+/** Hours per row; fewer with large system text, so "10 am" still fits in its chip. */
+function hoursPerRow(fontScale: number): number {
+  return fontScale > 1.3 ? 4 : 6;
+}
 
 type Props = {
   /** Clock minutes (minutes after midnight). */
   minute: number;
   onChange: (minute: number) => void;
+  /** Read out before the time when several pickers share a screen ("Lunch reminder"). */
+  name?: string;
 };
 
 /**
  * "Time  1:30 pm ▾". Tapping it opens a grid of the day's hours (4 am → 3 am, the way a Kalorie
  * day runs) and quarter hours, so any time is two taps away.
  */
-export function TimePicker({ minute, onChange }: Props) {
+export function TimePicker({ minute, onChange, name }: Props) {
   const { t } = useTranslation();
   const { colors, spacing, fontSize, radius, minTapTarget } = useTheme();
   const [open, setOpen] = useState(false);
+  const perRow = hoursPerRow(useWindowDimensions().fontScale);
   const time = formatTime(t, minute);
   const hour = Math.floor(minute / 60);
 
@@ -55,15 +61,15 @@ export function TimePicker({ minute, onChange }: Props) {
   );
 
   const rows: number[][] = [];
-  for (let i = 0; i < LOGICAL_DAY_HOURS.length; i += HOURS_PER_ROW) {
-    rows.push(LOGICAL_DAY_HOURS.slice(i, i + HOURS_PER_ROW));
+  for (let i = 0; i < LOGICAL_DAY_HOURS.length; i += perRow) {
+    rows.push(LOGICAL_DAY_HOURS.slice(i, i + perRow));
   }
 
   return (
     <View>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={t('time.label', { time })}
+        accessibilityLabel={name ? `${name}, ${time}` : t('time.label', { time })}
         accessibilityState={{ expanded: open }}
         onPress={() => setOpen((value) => !value)}
         style={[styles.row, { minHeight: minTapTarget }]}

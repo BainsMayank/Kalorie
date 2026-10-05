@@ -26,9 +26,10 @@ jest.mock('@/db/user/client', () => {
 });
 let mockId = '';
 let mockSlot: string | undefined;
+let mockLog: string | undefined;
 const mockBack = jest.fn();
 jest.mock('expo-router', () => ({
-  useLocalSearchParams: () => ({ id: mockId, slot: mockSlot }),
+  useLocalSearchParams: () => ({ id: mockId, slot: mockSlot, log: mockLog }),
   useRouter: () => ({ back: mockBack, canGoBack: () => true }),
 }));
 
@@ -41,6 +42,7 @@ beforeAll(() => useLogStore.getState().load());
 beforeEach(() => {
   jest.spyOn(Date, 'now').mockReturnValue(NOW);
   mockSlot = undefined;
+  mockLog = undefined;
   mockBack.mockClear();
   useLogStore.setState({ day: '2026-09-27' });
 });
@@ -146,6 +148,14 @@ describe('Adding to the log', () => {
     expect(mockBack).toHaveBeenCalled(); // back to the search for the next food
   });
 
+  it('opens the sheet straight away when coming from Add food', async () => {
+    mockLog = '1';
+    await openFood('daal');
+    expect(screen.getByRole('button', { name: 'Log to Lunch' })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Log to Lunch' }));
+    expect(await lastEntry()).toMatchObject({ name: 'Mixed dal', qty: 1, unit: 'katori' });
+  });
+
   it('logs half a medium roti (0.5 steps)', async () => {
     await openFood('roti');
     await fireEvent.press(screen.getByRole('button', { name: 'Add to log' }));
@@ -204,5 +214,40 @@ describe('Adding to the log', () => {
       day: '2026-09-26',
       loggedAt: new Date(2026, 8, 27, 1, 15).getTime(),
     });
+  });
+});
+
+describe('Oil / ghee on the Add sheet', () => {
+  it('offers Less · Normal · More for a dish cooked with oil, changing only fat and kcal', async () => {
+    const [dal] = await searchFoods(db, 'daal');
+    const food = (await getFoodDetail(db, dal.id))!;
+    const step = food.oilStep!; // Mixed dal: its recipe has oil
+    const per100 = await openFood('daal');
+    await fireEvent.press(screen.getByRole('button', { name: 'Add to log' }));
+
+    expect(screen.getByText('Oil / ghee')).toBeOnTheScreen();
+    expect(screen.getByRole('radio', { name: 'Normal', checked: true })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('radio', { name: 'More' }));
+
+    // 1 katori = 150 g: one step more oil on 150 g of dal.
+    const more = (per100 * 150) / 100 + (step.energy_kcal * 150) / 100;
+    expect(screen.getByText(kcalText(more))).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Log to Lunch' }));
+
+    // (Every entry in these tests is made at the same "now", so find it by its oil level.)
+    const withOil = (await listEntriesForDay('2026-09-27')).filter((e) => e.oilLevel !== 0);
+    expect(withOil).toEqual([
+      expect.objectContaining({
+        name: 'Mixed dal',
+        grams: 150, // the same katori — just more oil in it
+        oilLevel: 1,
+      }),
+    ]);
+  });
+
+  it('has no oil control for a food without cooking fat', async () => {
+    await openFood('dahi');
+    await fireEvent.press(screen.getByRole('button', { name: 'Add to log' }));
+    expect(screen.queryByText('Oil / ghee')).toBeNull();
   });
 });

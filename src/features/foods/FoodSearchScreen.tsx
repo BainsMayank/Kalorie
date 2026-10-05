@@ -6,24 +6,35 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { SourceBadge } from '@/components';
-import type { FoodSearchResult } from '@/db/foods';
 import { formatKcal, formatQty } from '@/lib/format';
+import { useHideNumbers } from '@/stores/settings';
 import { useTheme } from '@/theme';
 
 import { FavouriteButton } from './FavouriteButton';
+import { foodRoute } from './foodRoute';
+import type { SearchHit } from './searchAll';
 import { useFoodSearch } from './useFoodSearch';
 
-function ResultRow({ food, onPress }: { food: FoodSearchResult; onPress: () => void }) {
+function ResultRow({
+  food,
+  onPress,
+  withStar,
+}: {
+  food: SearchHit;
+  onPress: () => void;
+  withStar: boolean;
+}) {
   const { t } = useTranslation();
   const { colors, spacing, fontSize, minTapTarget } = useTheme();
+  const hide = useHideNumbers();
 
-  // "1 katori · 93 kcal", or just "1 katori" when kcal is unknown.
+  // "1 katori · 93 kcal", or just "1 katori" when kcal is unknown or numbers are hidden.
   const amount = t('food.portion', {
     qty: formatQty(food.defaultQty),
     unit: food.defaultUnitLabel,
   });
   const kcal =
-    food.energyKcalPer100g === null || food.defaultGrams === null
+    hide || food.energyKcalPer100g === null || food.defaultGrams === null
       ? null
       : formatKcal((food.energyKcalPer100g * food.defaultGrams) / 100);
   const portion = kcal === null ? amount : t('search.resultPortion', { portion: amount, kcal });
@@ -32,7 +43,11 @@ function ResultRow({ food, onPress }: { food: FoodSearchResult; onPress: () => v
     <View style={[styles.row, { borderBottomColor: colors.border, paddingRight: spacing.xs }]}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${food.name}, ${portion}`}
+        accessibilityLabel={
+          food.addedBy
+            ? `${food.name}, ${portion}, ${t('group.sharedBy', { name: food.addedBy })}`
+            : `${food.name}, ${portion}`
+        }
         onPress={onPress}
         style={({ pressed }) => [
           styles.flex,
@@ -51,16 +66,30 @@ function ResultRow({ food, onPress }: { food: FoodSearchResult; onPress: () => v
           </Text>
           <Text
             style={{ color: colors.textSecondary, fontSize: fontSize.caption, marginTop: 2 }}
-            numberOfLines={1}
+            numberOfLines={2}
           >
             {portion}
           </Text>
+          {food.addedBy !== undefined && (
+            <Text
+              style={{ color: colors.textSecondary, fontSize: fontSize.caption }}
+              numberOfLines={1}
+            >
+              {food.addedBy
+                ? t('group.sharedBy', { name: food.addedBy })
+                : t('group.food.sharedInGroup')}
+            </Text>
+          )}
         </View>
         <View style={{ marginLeft: spacing.md }}>
-          <SourceBadge source={food.source} />
+          <SourceBadge source={food.addedBy !== undefined ? 'group' : food.source} />
         </View>
       </Pressable>
-      <FavouriteButton foodSource="base" foodId={String(food.id)} name={food.name} />
+      {withStar ? (
+        <FavouriteButton foodSource={food.foodSource} foodId={food.foodId} name={food.name} />
+      ) : (
+        <View style={{ width: spacing.sm }} />
+      )}
     </View>
   );
 }
@@ -74,20 +103,38 @@ type Props = {
   actions?: ReactNode;
   /** Shown instead of the hint while nothing is typed (suggestions, recents, favourites). */
   renderEmpty?: () => ReactNode;
+  /**
+   * Picking a food for something else (a recipe's ingredient): tapping a result calls this
+   * instead of opening the food, and there are no ☆.
+   */
+  onPick?: (hit: SearchHit) => void;
+  /** A food to leave out of the results ("custom:<uuid>"): a recipe can't contain itself. */
+  excludeKey?: string;
 };
 
-/** Search foods.db as you type (SPEC §2.3). Tapping a result opens the food's details. */
-export function FoodSearchScreen({ slot, header, actions, renderEmpty }: Props) {
+/**
+ * Search every food as you type (SPEC §2.3): foods.db, and the person's recipes and products.
+ * Tapping a result opens the food's details.
+ */
+export function FoodSearchScreen({
+  slot,
+  header,
+  actions,
+  renderEmpty,
+  onPick,
+  excludeKey,
+}: Props) {
   const { t } = useTranslation();
   const router = useRouter();
   const { colors, spacing, fontSize, radius, minTapTarget } = useTheme();
   const [query, setQuery] = useState('');
   const search = useFoodSearch(query);
+  const results = excludeKey ? search.results.filter((r) => r.key !== excludeKey) : search.results;
 
   let message: string | null = null;
   if (search.status === 'error') message = t('search.unavailable');
   else if (search.status === 'idle' && !renderEmpty) message = t('search.hint');
-  else if (search.status === 'done' && search.results.length === 0) {
+  else if (search.status === 'done' && results.length === 0) {
     message = t('search.noResults', { query: query.trim() });
   }
 
@@ -158,16 +205,16 @@ export function FoodSearchScreen({ slot, header, actions, renderEmpty }: Props) 
         </Text>
       ) : (
         <FlashList
-          data={search.results}
-          keyExtractor={(food) => String(food.id)}
+          data={results}
+          keyExtractor={(food) => food.key}
           renderItem={({ item }) => (
             <ResultRow
               food={item}
+              withStar={!onPick}
               onPress={() =>
-                router.push({
-                  pathname: '/food/[id]',
-                  params: slot ? { id: String(item.id), slot } : { id: String(item.id) },
-                })
+                onPick
+                  ? onPick(item)
+                  : router.push(foodRoute(item.foodSource, item.foodId, slot, { log: true }))
               }
             />
           )}

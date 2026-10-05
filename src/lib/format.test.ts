@@ -1,4 +1,12 @@
-import { formatAmount, formatKcal, formatPercent, formatQty } from './format';
+import {
+  formatAmount,
+  formatKcal,
+  formatKg,
+  formatKgChange,
+  formatPercent,
+  formatQty,
+  formatWhole,
+} from './format';
 
 describe('formatKcal', () => {
   it('rounds to whole kcal with thousands separators', () => {
@@ -54,5 +62,20 @@ describe('formatPercent', () => {
 
   it('shows "<1" for a tiny share that isn’t zero', () => {
     expect(formatPercent(0.004)).toBe('<1');
+  });
+});
+
+describe('whole numbers and weight', () => {
+  it('writes whole numbers with separators', () => {
+    expect(formatWhole(2000)).toBe('2,000');
+    expect(formatWhole(749.6)).toBe('750');
+  });
+
+  it('writes weight with one decimal and changes with a sign', () => {
+    expect(formatKg(72.44)).toBe('72.4');
+    expect(formatKg(70)).toBe('70');
+    expect(formatKgChange(-0.34)).toBe('−0.3');
+    expect(formatKgChange(0.25)).toBe('+0.3');
+    expect(formatKgChange(0.04)).toBe('0');
   });
 });

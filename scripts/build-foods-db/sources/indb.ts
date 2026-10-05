@@ -11,7 +11,7 @@ import {
   estimateEnergyKcal,
   scale,
   sumKnown,
-  vitaminARaeUg,
+  vitaminAUg,
 } from '../../../src/lib/nutrients';
 import { servingGrams } from '../../../src/lib/units';
 import { dietFromName, indbCategory, splitAlternatives, splitIndbName } from '../classify';
@@ -189,15 +189,18 @@ export function indbFood(row: Row): FoodRecord {
     trace[key] = `${column} ${show(num(row, column))}${factor === 1 ? '' : ' ÷ 1000'}`;
   }
 
-  // INDB's vita_ug is retinol only (a spinach paratha has 0), so carotenoids are added as
-  // β-carotene / 12. To be re-checked with the ICMR-NIN vitamin A factor before Stage 9.
-  nutrients.vit_a_ug = vitaminARaeUg({
+  // INDB's vita_ug is retinol only (a spinach paratha has 0), so carotenoids are added with
+  // ICMR-NIN's general factor of 6:1 (p. 10).
+  nutrients.vit_a_ug = vitaminAUg({
     retinolUg: num(row, 'vita_ug'),
     betaCaroteneUg: num(row, 'carotenoids_ug'),
   });
-  trace.vit_a_ug = `vita_ug ${show(num(row, 'vita_ug'))} + carotenoids_ug ${show(num(row, 'carotenoids_ug'))} ÷ 12`;
-  nutrients.vit_d_ug = sumKnown(num(row, 'vitd2_ug'), num(row, 'vitd3_ug'));
-  trace.vit_d_ug = `vitd2 ${show(num(row, 'vitd2_ug'))} + vitd3 ${show(num(row, 'vitd3_ug'))}`;
+  trace.vit_a_ug = `vita_ug ${show(num(row, 'vita_ug'))} + carotenoids_ug ${show(num(row, 'carotenoids_ug'))} ÷ 6`;
+  // INDB's vitamin D is added up from IFCT's ingredient values, including IFCT's vitamin D in
+  // plant foods (soya bean 70 µg, pomegranate 109 µg per 100 g), which isn't believable and is
+  // left out of IFCT's own rows (ifct.ts). So a dish's vitamin D is unknown.
+  nutrients.vit_d_ug = null;
+  trace.vit_d_ug = `vitd2 ${show(num(row, 'vitd2_ug'))} + vitd3 ${show(num(row, 'vitd3_ug'))} → unknown (built from IFCT plant values)`;
   nutrients.vit_k_ug = sumKnown(num(row, 'vitk1_ug'), num(row, 'vitk2_ug'));
   trace.vit_k_ug = `vitk1 ${show(num(row, 'vitk1_ug'))} + vitk2 ${show(num(row, 'vitk2_ug'))}`;
 

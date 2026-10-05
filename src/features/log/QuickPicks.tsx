@@ -4,29 +4,45 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { ChoiceChips, SourceBadge } from '@/components';
+import { Button, ChoiceChips, SourceBadge } from '@/components';
 import { FavouriteButton } from '@/features/foods/FavouriteButton';
+import { foodRoute } from '@/features/foods/foodRoute';
+import { ThaliSheet, thaliKcal } from '@/features/thalis/ThaliSheet';
 import { defaultEntryMinute, timeOnDay } from '@/lib/day';
 import { formatKcal, formatQty } from '@/lib/format';
 import { useLogStore } from '@/stores/log';
+import { useHideNumbers } from '@/stores/settings';
 import { useTheme } from '@/theme';
 
 import { loggedTick } from './haptics';
 import { slotName } from './names';
-import { useQuickPicks, type QuickPick } from './useQuickPicks';
+import { useQuickPicks, type QuickPick, type ThaliPick } from './useQuickPicks';
 import { useToday } from './useToday';
 
-type Tab = 'recent' | 'favourites';
+type Tab = 'recent' | 'favourites' | 'myFoods' | 'thalis';
+
+const EMPTY_NOTE: Record<
+  Tab,
+  'add.recentEmpty' | 'add.favouritesEmpty' | 'add.myFoodsEmpty' | 'add.thalisEmpty'
+> = {
+  recent: 'add.recentEmpty',
+  favourites: 'add.favouritesEmpty',
+  myFoods: 'add.myFoodsEmpty',
+  thalis: 'add.thalisEmpty',
+};
 
 type Item =
   | { type: 'heading'; key: string; text: string }
   | { type: 'pick'; key: string; pick: QuickPick }
+  | { type: 'thali'; key: string; pick: ThaliPick }
+  | { type: 'newRecipe'; key: string }
   | { type: 'tabs'; key: string }
   | { type: 'note'; key: string; text: string };
 
-/** "1 katori · 93 kcal" for a pick's amount. */
+/** "1 katori · 93 kcal" for a pick's amount; just "1 katori" with hide numbers on. */
 function usePortionText() {
   const { t } = useTranslation();
+  const hide = useHideNumbers();
   return (pick: QuickPick) => {
     const { portion, food } = pick;
     const amount = t('food.portion', {
@@ -34,7 +50,7 @@ function usePortionText() {
       unit: food.units[portion.unit]?.label ?? portion.unit,
     });
     const kcal = food.nutrients.energy_kcal;
-    return kcal === null
+    return kcal === null || hide
       ? amount
       : t('search.resultPortion', {
           portion: amount,
@@ -45,15 +61,17 @@ function usePortionText() {
 
 /**
  * The Add food screen before anything is typed: foods usually logged in this slot (one tap
- * adds them at the usual amount), then Recent and Favourites tabs (SPEC §2.3).
+ * adds them at the usual amount), then Recent · Favourites · My foods · Thalis tabs (SPEC §2.3).
  */
 export function QuickPicks({ slotId, day }: { slotId: string | undefined; day: string }) {
   const { t } = useTranslation();
+  const router = useRouter();
   const { colors, spacing, fontSize } = useTheme();
   const today = useToday();
   const picks = useQuickPicks(slotId, today);
   const slot = useLogStore((state) => state.slots.find((s) => s.id === slotId));
   const [tab, setTab] = useState<Tab>('recent');
+  const [openThali, setOpenThali] = useState<ThaliPick | null>(null);
 
   if (picks.status !== 'ready') {
     return picks.status === 'error' ? (
@@ -64,31 +82,38 @@ export function QuickPicks({ slotId, day }: { slotId: string | undefined; day: s
   }
 
   const items: Item[] = [];
-  if (
-    picks.recents.length === 0 &&
-    picks.favourites.length === 0 &&
-    picks.suggestions.length === 0
-  ) {
-    items.push({ type: 'note', key: 'hint', text: t('search.hint') });
-  } else {
-    if (picks.suggestions.length > 0 && slot) {
-      items.push({
-        type: 'heading',
-        key: 'suggested',
-        text: t('add.suggested', { slot: slotName(t, slot) }),
-      });
-      for (const pick of picks.suggestions)
-        items.push({ type: 'pick', key: `s-${pick.key}`, pick });
+  // Nothing logged yet: say what the search understands, above the starter suggestions.
+  if (picks.recents.length === 0) items.push({ type: 'note', key: 'hint', text: t('search.hint') });
+  if (picks.suggestions.length > 0 && slot) {
+    items.push({
+      type: 'heading',
+      key: 'suggested',
+      text: t('add.suggested', { slot: slotName(t, slot) }),
+    });
+    for (const pick of picks.suggestions) items.push({ type: 'pick', key: `s-${pick.key}`, pick });
+  }
+  items.push({ type: 'tabs', key: 'tabs' });
+  if (tab === 'myFoods') items.push({ type: 'newRecipe', key: 'new-recipe' });
+  if (tab === 'thalis') {
+    // The person's own thalis (or how to save one), then the built-in starters.
+    for (const pick of picks.thalis) {
+      items.push({ type: 'thali', key: `thali-${pick.thali.id}`, pick });
     }
-    items.push({ type: 'tabs', key: 'tabs' });
-    const list = tab === 'recent' ? picks.recents : picks.favourites;
+    if (picks.thalis.length === 0) {
+      items.push({ type: 'note', key: 'empty-thalis', text: t(EMPTY_NOTE.thalis) });
+    }
+    if (picks.starterThalis.length > 0) {
+      items.push({ type: 'heading', key: 'starter-thalis', text: t('add.starterThalis') });
+      for (const pick of picks.starterThalis) {
+        items.push({ type: 'thali', key: `thali-${pick.thali.id}`, pick });
+      }
+    }
+  } else {
+    const list =
+      tab === 'recent' ? picks.recents : tab === 'favourites' ? picks.favourites : picks.myFoods;
     for (const pick of list) items.push({ type: 'pick', key: `${tab}-${pick.key}`, pick });
     if (list.length === 0) {
-      items.push({
-        type: 'note',
-        key: `empty-${tab}`,
-        text: t(tab === 'recent' ? 'add.recentEmpty' : 'add.favouritesEmpty'),
-      });
+      items.push({ type: 'note', key: `empty-${tab}`, text: t(EMPTY_NOTE[tab]) });
     }
   }
 
@@ -127,6 +152,8 @@ export function QuickPicks({ slotId, day }: { slotId: string | undefined; day: s
               choices={[
                 { value: 'recent', label: t('add.recent') },
                 { value: 'favourites', label: t('add.favourites') },
+                { value: 'myFoods', label: t('add.myFoods') },
+                { value: 'thalis', label: t('add.thalis') },
               ]}
               selected={tab}
               onSelect={setTab}
@@ -149,19 +176,84 @@ export function QuickPicks({ slotId, day }: { slotId: string | undefined; day: s
         );
       case 'pick':
         return <PickRow key={item.key} pick={item.pick} slotId={slotId} day={day} />;
+      case 'thali':
+        return <ThaliRow key={item.key} pick={item.pick} onPress={() => setOpenThali(item.pick)} />;
+      case 'newRecipe':
+        return (
+          <View key={item.key} style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
+            <Button
+              label={t('add.newRecipe')}
+              kind="secondary"
+              onPress={() => router.push('/recipe')}
+            />
+          </View>
+        );
     }
   };
 
   // A plain scroll view: the lists are short (8 suggestions, 30 recents, the favourites), and
   // unlike a recycling list it always lays out right when the slot changes.
   return (
-    <ScrollView
-      keyboardShouldPersistTaps="handled"
-      keyboardDismissMode="on-drag"
-      contentContainerStyle={{ paddingBottom: 96 }} // room for the Undo bar
+    <>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        contentContainerStyle={{ paddingBottom: 96 }} // room for the Undo bar
+      >
+        {items.map(renderItem)}
+      </ScrollView>
+      {openThali && (
+        <ThaliSheet
+          thali={openThali.thali}
+          foods={openThali.foods}
+          day={day}
+          slotId={slotId}
+          onClose={() => setOpenThali(null)}
+        />
+      )}
+    </>
+  );
+}
+
+/** A thali: its name, how many foods and their kcal. Tap to open the checklist. */
+function ThaliRow({ pick, onPress }: { pick: ThaliPick; onPress: () => void }) {
+  const { t } = useTranslation();
+  const { colors, spacing, fontSize, minTapTarget } = useTheme();
+  const hide = useHideNumbers();
+  const summary = hide
+    ? t('add.thaliItemsHidden', { count: pick.thali.items.length })
+    : t('add.thaliItems', {
+        count: pick.thali.items.length,
+        kcal: formatKcal(thaliKcal(pick.thali, pick.foods)),
+      });
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${pick.thali.name}, ${summary}`}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.row,
+        {
+          minHeight: minTapTarget + spacing.md,
+          paddingHorizontal: spacing.lg,
+          paddingVertical: spacing.md,
+          gap: spacing.md,
+          borderBottomWidth: StyleSheet.hairlineWidth,
+          borderBottomColor: colors.border,
+          opacity: pressed ? 0.6 : 1,
+        },
+      ]}
     >
-      {items.map(renderItem)}
-    </ScrollView>
+      <View style={styles.flex}>
+        <Text style={{ color: colors.text, fontSize: fontSize.body }} numberOfLines={2}>
+          {pick.thali.name}
+        </Text>
+        <Text style={{ color: colors.textSecondary, fontSize: fontSize.caption, marginTop: 2 }}>
+          {summary}
+        </Text>
+      </View>
+      <Ionicons name="chevron-forward" size={20} color={colors.iconInactive} />
+    </Pressable>
   );
 }
 
@@ -219,12 +311,7 @@ function PickRow({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${food.name}, ${text}`}
-        onPress={() =>
-          router.push({
-            pathname: '/food/[id]',
-            params: slotId ? { id: pick.foodId, slot: slotId } : { id: pick.foodId },
-          })
-        }
+        onPress={() => router.push(foodRoute(pick.foodSource, pick.foodId, slotId, { log: true }))}
         style={({ pressed }) => [
           styles.flex,
           styles.row,
@@ -237,7 +324,7 @@ function PickRow({
           </Text>
           <Text
             style={{ color: colors.textSecondary, fontSize: fontSize.caption, marginTop: 2 }}
-            numberOfLines={1}
+            numberOfLines={2}
           >
             {text}
           </Text>

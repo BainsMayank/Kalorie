@@ -1,0 +1,35 @@
+# Built-in starter thalis (SPEC §2.9, §4.1 thali_templates): common meals logged in one go from
+# Add food → Thalis. The person ticks what they're having and changes any amount before logging.
+# thali:  the thali's name as shown; rows with the same name form one thali, in file order.
+# region: where the meal is from (north, south, west, east, any).
+# ref:    "<source>:<source_code>" of the food, as in search_pins.csv.
+# name:   the food's name, checked by the build so a wrong ref is caught.
+# qty, unit: the usual amount; the unit must be one the food offers (or g).
+thali,region,ref,name,qty,unit
+North Indian veg thali,north,indb:ASC096,Chapati/Roti,2,roti_m
+North Indian veg thali,north,indb:ASC155,Mixed dal,1,katori
+North Indian veg thali,north,indb:ASC113,Boiled rice,1,katori
+North Indian veg thali,north,indb:ASC171,Potato cauliflower,1,katori
+North Indian veg thali,north,usda_fnd:2259793,"Yogurt, plain, whole milk",0.5,katori
+South Indian meals,south,indb:ASC113,Boiled rice,2,katori
+South Indian meals,south,indb:ASC167,Sambar,1,katori
+South Indian meals,south,indb:BFP176,Rasam with tamarind,1,katori
+South Indian meals,south,indb:ASC179,Beans with coconut,1,katori
+South Indian meals,south,usda_fnd:2259793,"Yogurt, plain, whole milk",0.5,katori
+Gujarati thali,west,indb:ASC096,Chapati/Roti,2,roti_s
+Gujarati thali,west,indb:ASC155,Mixed dal,1,katori
+Gujarati thali,west,indb:ASC113,Boiled rice,1,katori
+Gujarati thali,west,indb:ASC178,Dry potato,1,katori
+Gujarati thali,west,indb:ASC474,Dhokla,2,piece
+Punjabi non-veg thali,north,indb:ASC142,Naan,1,piece
+Punjabi non-veg thali,north,indb:ASC240,Chicken curry,1,katori
+Punjabi non-veg thali,north,indb:OSR139,Dal makhani,1,katori
+Punjabi non-veg thali,north,indb:BFP134,Cumin pulao,1,katori
+Punjabi non-veg thali,north,indb:OSR090,Onion raita,0.5,katori
+Bengali fish thali,east,indb:ASC113,Boiled rice,2,katori
+Bengali fish thali,east,indb:ASC246,Fish curry,1,katori
+Bengali fish thali,east,indb:ASC157,Whole masoor,1,katori
+Bengali fish thali,east,indb:ASC177,Brinjal bhartha,0.5,katori
+Simple dal-chawal,any,indb:ASC155,Mixed dal,1,katori
+Simple dal-chawal,any,indb:ASC113,Boiled rice,1.5,katori
+Simple dal-chawal,any,indb:ASC507,Mango pickle,1,tsp

@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { getFoodsDb, getLoggedFoods } from '@/db/foods';
-import { listEntriesForDay } from '@/db/user/entries';
+import { listDeletedEntries, listEntriesForDay } from '@/db/user/entries';
 import type { LogEntry } from '@/db/user/schema';
+import { loadLoggedFoods } from '@/features/foods/loadFoods';
 import type { NutrientValues } from '@/lib/nutrients';
 import { entryNutrients } from '@/lib/nutrition';
+import { foodKey } from '@/lib/suggestions';
 import { useLogStore } from '@/stores/log';
 
 /** One entry as the log shows it. */
@@ -18,20 +19,43 @@ export interface EntryView {
 type DayLog =
   { status: 'loading' } | { status: 'ready'; entries: EntryView[] } | { status: 'error' };
 
-/** A day's entries with their nutrients, read from user.db and foods.db. */
-async function readDay(day: string): Promise<EntryView[]> {
-  const entries = await listEntriesForDay(day);
-  const ids = entries.filter((e) => e.foodSource === 'base').map((e) => Number(e.foodId));
-  const foods = ids.length > 0 ? await getLoggedFoods(await getFoodsDb(), ids) : new Map();
+/** Entries with their nutrients and unit words, from the foods they were logged from. */
+export async function entryViews(entries: readonly LogEntry[]): Promise<EntryView[]> {
+  const foods = await loadLoggedFoods(entries);
 
   return entries.map((entry): EntryView => {
-    const food = entry.foodSource === 'base' ? foods.get(Number(entry.foodId)) : undefined;
+    const food =
+      entry.foodId === null ? undefined : foods.get(foodKey(entry.foodSource, entry.foodId));
     return {
       entry,
-      nutrients: entryNutrients(entry, food?.nutrients ?? null),
+      nutrients: entryNutrients(entry, food?.nutrients ?? null, food?.oilStep ?? null),
       unitLabel: entry.unit ? (food?.units[entry.unit]?.label ?? entry.unit) : null,
     };
   });
+}
+
+/**
+ * A day's deleted entries that can still be brought back (SPEC §2.10 *Recently deleted*),
+ * read again after every change. Empty while loading or if reading fails.
+ */
+export function useDeletedEntries(day: string): EntryView[] {
+  const revision = useLogStore((state) => state.revision);
+  const [state, setState] = useState<{ day: string; entries: EntryView[] }>({ day, entries: [] });
+
+  useEffect(() => {
+    let current = true;
+    listDeletedEntries(day)
+      .then(entryViews)
+      .then((entries) => {
+        if (current) setState({ day, entries });
+      })
+      .catch(() => {});
+    return () => {
+      current = false;
+    };
+  }, [day, revision]);
+
+  return state.day === day ? state.entries : [];
 }
 
 /**
@@ -49,7 +73,7 @@ export function useDayLog(day: string): DayLog & { reload: () => Promise<void> }
     const request = ++latest.current;
     let value: DayLog;
     try {
-      value = { status: 'ready', entries: await readDay(day) };
+      value = { status: 'ready', entries: await entryViews(await listEntriesForDay(day)) };
     } catch {
       value = { status: 'error' };
     }

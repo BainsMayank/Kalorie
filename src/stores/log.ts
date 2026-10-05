@@ -35,9 +35,13 @@ type LogState = {
   setDay: (day: string) => void;
   /** Saves an entry. Undo removes it. */
   addEntry: (entry: NewEntry, undoMessage: string) => Promise<LogEntry>;
+  /** Saves several entries in one go (a thali), with one batch id. Undo removes them all. */
+  addEntries: (entries: readonly NewEntry[], undoMessage: string) => Promise<LogEntry[]>;
   editEntry: (id: string, changes: EntryChanges) => Promise<void>;
   /** Soft-deletes an entry. Undo brings it back. */
   removeEntry: (id: string, undoMessage: string) => Promise<void>;
+  /** Brings a deleted entry back from *Recently deleted*. Undo deletes it again. */
+  restoreEntry: (id: string, undoMessage: string) => Promise<void>;
   /** Copies entries to another day (and slot). Undo removes the copies. */
   copy: (
     entries: readonly LogEntry[],
@@ -74,6 +78,13 @@ export const useLogStore = create<LogState>()((set, get) => {
       return saved;
     },
 
+    addEntries: async (entries, undoMessage) => {
+      const saved = await insertEntries(entries);
+      changed();
+      offerUndo(undoMessage, () => purgeEntries(saved.map((e) => e.id)));
+      return saved;
+    },
+
     editEntry: async (id, changes) => {
       await updateEntry(id, changes);
       changed();
@@ -83,6 +94,12 @@ export const useLogStore = create<LogState>()((set, get) => {
       await deleteEntry(id);
       changed();
       offerUndo(undoMessage, () => restoreEntries([id]));
+    },
+
+    restoreEntry: async (id, undoMessage) => {
+      await restoreEntries([id]);
+      changed();
+      offerUndo(undoMessage, () => deleteEntry(id));
     },
 
     copy: async (entries, target, undoMessage) => {

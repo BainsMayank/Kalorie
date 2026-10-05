@@ -6,10 +6,27 @@ function withSeparators(whole: number): string {
   return String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
+/** A whole number with thousands separators: 1840.4 → "1,840" (ml of water, kcal). */
+export function formatWhole(value: number): string {
+  return withSeparators(Math.round(value));
+}
+
 /** Energy: whole kcal with thousands separators (1,840). `null` (unknown) → null. */
 export function formatKcal(value: number | null): string | null {
   if (value === null) return null;
-  return withSeparators(Math.round(value));
+  return formatWhole(value);
+}
+
+/** Body weight: one decimal (SPEC §7 rule 7), "72.4", "70.0" → "70". */
+export function formatKg(kg: number): string {
+  return String(Math.round(kg * 10) / 10);
+}
+
+/** A change in weight with its sign: "+0.3", "−0.4" (a real minus sign), "0". */
+export function formatKgChange(kg: number): string {
+  const rounded = Math.round(kg * 10) / 10;
+  if (rounded === 0) return '0';
+  return `${rounded > 0 ? '+' : '−'}${Math.abs(rounded)}`;
 }
 
 /**

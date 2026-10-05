@@ -1,7 +1,20 @@
 // Log entries: what was eaten, when and how much (SPEC §4.2). Deleting only sets `deleted_at`
 // (soft delete), so an entry can be brought back.
 
-import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, max, ne } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  lte,
+  max,
+  ne,
+} from 'drizzle-orm';
 
 import { uuid } from '@/lib/uuid';
 
@@ -135,6 +148,26 @@ export async function listFoodEntriesSince(day: string): Promise<LogEntry[]> {
 }
 
 /**
+ * How often each food was logged from `day` on, keyed by food key ("base:123"), for ranking
+ * search results (SPEC §5.1: personal use). Quick adds have no food and are left out.
+ */
+export async function countFoodUsesSince(day: string): Promise<Map<string, number>> {
+  const rows = await getUserDb()
+    .select({ foodSource: logEntries.foodSource, foodId: logEntries.foodId, uses: count() })
+    .from(logEntries)
+    .where(
+      and(
+        gte(logEntries.day, day),
+        isNull(logEntries.deletedAt),
+        ne(logEntries.foodSource, 'quick'),
+        isNotNull(logEntries.foodId),
+      ),
+    )
+    .groupBy(logEntries.foodSource, logEntries.foodId);
+  return new Map(rows.map((r) => [`${r.foodSource}:${r.foodId}`, r.uses]));
+}
+
+/**
  * Recents (SPEC §4.2): the latest entry of each of the `limit` foods logged most recently,
  * newest first. Each row's amount is the one used last time.
  */
@@ -185,6 +218,33 @@ export async function listRecentFoods(limit = 30): Promise<LogEntry[]> {
     });
 }
 
+/** How long a deleted entry can be brought back (SPEC §5.11); after that it is removed for good. */
+export const KEEP_DELETED_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * A day's deleted entries that can still be brought back (deleted in the last 30 days), most
+ * recently deleted first — the *Recently deleted* list (SPEC §2.10).
+ */
+export async function listDeletedEntries(day: string, now = Date.now()): Promise<LogEntry[]> {
+  return getUserDb()
+    .select()
+    .from(logEntries)
+    .where(and(eq(logEntries.day, day), gte(logEntries.deletedAt, now - KEEP_DELETED_MS)))
+    .orderBy(desc(logEntries.deletedAt));
+}
+
+/**
+ * Entries that aren't deleted from `from` to `to` (both included), for the calendar and Trends.
+ * Uses the (`day`, `deleted_at`) index, so a month is one quick index range.
+ */
+export async function listEntriesBetween(from: string, to: string): Promise<LogEntry[]> {
+  return getUserDb()
+    .select()
+    .from(logEntries)
+    .where(and(gte(logEntries.day, from), lte(logEntries.day, to), isNull(logEntries.deletedAt)))
+    .orderBy(asc(logEntries.day), asc(logEntries.loggedAt));
+}
+
 /** A day's entries that aren't deleted, earliest first. */
 export async function listEntriesForDay(day: string): Promise<LogEntry[]> {
   return getUserDb()
@@ -192,4 +252,16 @@ export async function listEntriesForDay(day: string): Promise<LogEntry[]> {
     .from(logEntries)
     .where(and(eq(logEntries.day, day), isNull(logEntries.deletedAt)))
     .orderBy(asc(logEntries.loggedAt), asc(logEntries.createdAt));
+}
+
+/**
+ * Every day up to `to` with at least one entry that isn't deleted (quick adds count), for the
+ * streak (SPEC §5.7). Read from the (`day`, `deleted_at`) index alone.
+ */
+export async function listLoggedDays(to: string): Promise<string[]> {
+  const rows = await getUserDb()
+    .selectDistinct({ day: logEntries.day })
+    .from(logEntries)
+    .where(and(lte(logEntries.day, to), isNull(logEntries.deletedAt)));
+  return rows.map((r) => r.day);
 }

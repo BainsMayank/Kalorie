@@ -16,10 +16,11 @@ import {
   loadDensityRules,
   loadDuplicateDecisions,
   loadIngredientMap,
-  loadRda,
   loadSearchPins,
   loadServingOverrides,
+  loadSlotSuggestions,
   loadSynonymGroups,
+  loadThalis,
   loadUnitRules,
 } from './curated';
 import { dedupe, dedupeKey } from './dedupe';
@@ -63,7 +64,24 @@ describe('curated files', () => {
     expect(loadDuplicateDecisions()).toBeInstanceOf(Array);
     expect(loadSearchPins().length).toBeGreaterThan(5);
     expect(loadServingOverrides().size).toBeGreaterThan(5);
-    expect(loadRda()).toHaveLength(48);
+  });
+
+  it('has the 6 starter thalis from the spec, each with a few foods', () => {
+    const thalis = loadThalis();
+    expect(thalis.map((t) => t.name)).toEqual([
+      'North Indian veg thali',
+      'South Indian meals',
+      'Gujarati thali',
+      'Punjabi non-veg thali',
+      'Bengali fish thali',
+      'Simple dal-chawal',
+    ]);
+    for (const thali of thalis) expect(thali.items.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('has starter foods for every meal slot', () => {
+    const slots = new Set(loadSlotSuggestions().map((s) => s.slot));
+    expect([...slots]).toEqual(['breakfast', 'lunch', 'snacks', 'dinner']);
   });
 
   it('maps every INDB fat code (T5xx) to a food', () => {

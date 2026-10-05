@@ -79,6 +79,26 @@ describe('Add food — before any food is logged', () => {
     expect(screen.getByRole('radio', { name: 'Lunch', checked: true })).toBeOnTheScreen();
     expect(screen.getByText(/Daal, bhindi and dahi all work/)).toBeOnTheScreen();
   });
+
+  it('suggests starter foods for the slot (data/curated/slot_suggestions.csv)', async () => {
+    await renderAdd();
+    expect(screen.getByRole('header', { name: 'Often at Lunch' })).toBeOnTheScreen();
+    const suggested = screen.getAllByRole('button', { name: /^Add .* to Lunch$/ });
+    expect(suggested[0]).toHaveAccessibleName('Add 1 medium roti Chapati/Roti to Lunch');
+    expect(suggested[1]).toHaveAccessibleName('Add 1 katori Mixed dal to Lunch');
+  });
+
+  it('offers the starter thalis, which can’t be deleted', async () => {
+    await renderAdd();
+    await fireEvent.press(screen.getByRole('radio', { name: 'Thalis' }));
+    expect(screen.getByText(/Save any meal as a thali/)).toBeOnTheScreen();
+    expect(screen.getByRole('header', { name: 'Starter thalis' })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: /^Simple dal-chawal, 3 items/ }));
+    expect(screen.getByRole('header', { name: 'Simple dal-chawal' })).toBeOnTheScreen();
+    expect(screen.getByRole('checkbox', { name: 'Include Mixed dal' })).toBeChecked();
+    expect(screen.getByRole('button', { name: 'Log 3 items to Lunch' })).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: 'Delete thali' })).toBeNull();
+  });
 });
 
 describe('Add food — suggestions, recents and favourites', () => {
@@ -161,42 +181,47 @@ describe('Add food — suggestions, recents and favourites', () => {
     await fireEvent.press(screen.getByRole('radio', { name: 'Breakfast' }));
     await act(async () => {});
     expect(screen.getByRole('header', { name: 'Often at Breakfast' })).toBeOnTheScreen();
-    // Roti is the only breakfast suggestion (it also shows under Recent, like dal).
+    // Roti is the only breakfast food so far, so starter foods fill the list after it.
     const suggested = screen.getAllByRole('button', { name: /^Add .* to Breakfast$/ });
     expect(suggested[0]).toHaveAccessibleName('Add 1 medium roti Chapati/Roti to Breakfast');
-    expect(suggested[1]).toHaveAccessibleName('Add 1 medium roti Chapati/Roti to Breakfast');
+    expect(suggested[1]).toHaveAccessibleName('Add 1 tea cup Hot tea to Breakfast');
   });
 
   it('starts on the slot "+ Add" was tapped on', async () => {
     mockSlot = 'dinner';
     await renderAdd();
     expect(screen.getByRole('radio', { name: 'Dinner', checked: true })).toBeOnTheScreen();
-    // Nothing eaten at dinner yet, so no suggestions — but Recent still helps.
-    expect(screen.queryByRole('header', { name: 'Often at Dinner' })).toBeNull();
+    // Nothing eaten at dinner yet: starter foods, and Recent helps too.
+    expect(screen.getByRole('header', { name: 'Often at Dinner' })).toBeOnTheScreen();
     expect(screen.getByRole('radio', { name: 'Recent', checked: true })).toBeOnTheScreen();
   });
 
   it('suggests a food for a slot right after it is first logged there', async () => {
     mockSlot = 'snacks';
+    const firstSuggestion = () => screen.getAllByRole('button', { name: /^Add .* to Snacks$/ })[0];
     await renderAdd();
-    expect(screen.queryByRole('header', { name: 'Often at Snacks' })).toBeNull();
-    await fireEvent.press(screen.getByRole('button', { name: 'Add 1 katori Mixed dal to Snacks' }));
+    // Only starter foods at snacks so far: tea first.
+    expect(firstSuggestion()).toHaveAccessibleName('Add 1 tea cup Hot tea to Snacks');
+    await fireEvent.press(
+      screen.getAllByRole('button', { name: 'Add 1 katori Mixed dal to Snacks' })[0],
+    );
     await settle();
-    expect(screen.getByRole('header', { name: 'Often at Snacks' })).toBeOnTheScreen();
+    expect(firstSuggestion()).toHaveAccessibleName('Add 1 katori Mixed dal to Snacks');
     await act(() => useUndoStore.getState().undo());
     await settle();
-    expect(screen.queryByRole('header', { name: 'Often at Snacks' })).toBeNull();
+    expect(firstSuggestion()).toHaveAccessibleName('Add 1 tea cup Hot tea to Snacks');
   });
 
   it('lists recent foods at the amount used last time', async () => {
     mockSlot = 'dinner';
     await renderAdd();
+    // Each shows twice: as a starter suggestion for dinner and under Recent.
     expect(
-      screen.getByRole('button', { name: 'Add 1 medium roti Chapati/Roti to Dinner' }),
-    ).toBeOnTheScreen();
+      screen.getAllByRole('button', { name: 'Add 1 medium roti Chapati/Roti to Dinner' }),
+    ).toHaveLength(2);
     expect(
-      screen.getByRole('button', { name: 'Add 1 katori Mixed dal to Dinner' }),
-    ).toBeOnTheScreen();
+      screen.getAllByRole('button', { name: 'Add 1 katori Mixed dal to Dinner' }),
+    ).toHaveLength(2);
   });
 
   it('stars a food, which then shows in Favourites', async () => {
@@ -206,25 +231,27 @@ describe('Add food — suggestions, recents and favourites', () => {
     expect(screen.getByText('Tap ☆ on any food to keep it here.')).toBeOnTheScreen();
 
     await fireEvent.press(screen.getByRole('radio', { name: 'Recent' }));
-    await fireEvent.press(screen.getByRole('button', { name: 'Add Mixed dal to favourites' }));
+    // The last star is in the Recent list (the first is on its starter suggestion).
+    const stars = screen.getAllByRole('button', { name: 'Add Mixed dal to favourites' });
+    await fireEvent.press(stars[stars.length - 1]);
     await act(async () => {});
     expect(await listFavourites()).toMatchObject([{ foodSource: 'base', foodId: String(dal.id) }]);
 
     await fireEvent.press(screen.getByRole('radio', { name: 'Favourites' }));
     await act(async () => {});
-    const row = screen.getByRole('button', { name: /^Mixed dal, 1 katori/ });
-    expect(row).toBeOnTheScreen();
+    // In the suggestions and in Favourites, starred in both.
+    expect(screen.getAllByRole('button', { name: /^Mixed dal, 1 katori/ })).toHaveLength(2);
     expect(
-      screen.getByRole('button', { name: 'Remove Mixed dal from favourites' }),
-    ).toBeOnTheScreen();
+      screen.getAllByRole('button', { name: 'Remove Mixed dal from favourites' }),
+    ).toHaveLength(2);
   });
 
-  it('opens a food with the chosen slot', async () => {
+  it('opens a food with the chosen slot, its Add to log sheet already up', async () => {
     await renderAdd();
     await fireEvent.press(screen.getAllByRole('button', { name: /^Mixed dal, / })[0]);
     expect(mockPush).toHaveBeenCalledWith({
       pathname: '/food/[id]',
-      params: { id: String(dal.id), slot: 'lunch' },
+      params: { id: String(dal.id), slot: 'lunch', log: '1' },
     });
   });
 });

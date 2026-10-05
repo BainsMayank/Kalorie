@@ -3,7 +3,7 @@
 import { NUTRIENT_KEYS } from '../../src/lib/nutrients';
 
 /** Bump when the tables or the data change in a way the app must notice (SPEC §4.1 meta). */
-export const DB_VERSION = 2;
+export const DB_VERSION = 5;
 
 const nutrientColumns = NUTRIENT_KEYS.map((k) => `  ${k} REAL`).join(',\n');
 
@@ -80,6 +80,7 @@ ${nutrientColumns},
   PRIMARY KEY (recipe_food_id, position)
 ) WITHOUT ROWID;
 
+-- Built-in starter thalis (data/curated/thalis.csv).
 CREATE TABLE thali_templates (
   id INTEGER PRIMARY KEY,
   name TEXT NOT NULL,
@@ -95,6 +96,7 @@ CREATE TABLE thali_template_items (
   PRIMARY KEY (template_id, position)
 ) WITHOUT ROWID;
 
+-- Starter foods per meal slot for a new user (data/curated/slot_suggestions.csv).
 CREATE TABLE slot_suggestions (
   slot TEXT NOT NULL,
   food_id INTEGER NOT NULL,
@@ -102,14 +104,14 @@ CREATE TABLE slot_suggestions (
   PRIMARY KEY (slot, position)
 ) WITHOUT ROWID;
 
-CREATE TABLE rda_reference (
-  nutrient TEXT NOT NULL,
-  sex TEXT NOT NULL,
-  rda REAL,
-  tul REAL,
-  per_1000_kcal REAL,
+-- Everyday foods with an everyday portion: "foods rich in …" on the Nutrients screen
+-- (data/curated/common_foods.csv). diet is the food's, or the file's when foods.db has none.
+CREATE TABLE common_foods (
+  food_id INTEGER PRIMARY KEY,
+  qty REAL NOT NULL,
   unit TEXT NOT NULL,
-  PRIMARY KEY (nutrient, sex)
+  grams REAL NOT NULL,
+  diet TEXT NOT NULL
 ) WITHOUT ROWID;
 
 CREATE TABLE meta (

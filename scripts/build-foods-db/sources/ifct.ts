@@ -13,7 +13,7 @@ import {
   estimateEnergyKcal,
   kjToKcal,
   scale,
-  vitaminARaeUg,
+  vitaminAUg,
 } from '../../../src/lib/nutrients';
 import { dietFromIfctTags, ifctCategory, parseIfctLocalNames } from '../classify';
 import type { FoodRecord } from '../types';
@@ -122,14 +122,16 @@ export function ifctFood(row: Row): FoodRecord {
         : `${column} ${row[column]} ${unitName(factor)}`;
   }
 
-  nutrients.vit_a_ug = vitaminARaeUg({
+  // cartbeq = β-carotene equivalents (β-carotene + half the α-carotene and β-cryptoxanthin), so
+  // ÷ 6 gives exactly ICMR-NIN's 6:1 / 12:1 (p. 10).
+  nutrients.vit_a_ug = vitaminAUg({
     retinolUg: scale(value('retol'), UG),
     betaCaroteneUg: scale(value('cartbeq'), UG),
   });
   trace.vit_a_ug =
     value('retol') === null
       ? 'not analysed'
-      : `retol ${row.retol} + cartbeq ${row.cartbeq} ÷ 12 (g × 10⁶)`;
+      : `retol ${row.retol} + cartbeq ${row.cartbeq} ÷ 6 (g × 10⁶)`;
 
   let energyEstimated = false;
   const kj = value('enerc');
@@ -149,6 +151,7 @@ export function ifctFood(row: Row): FoodRecord {
 
   const { hindi, regional } = parseIfctLocalNames(row.lang ?? '');
   const category = ifctCategory(row.grup, row.name);
+  fixIfctSlips(nutrients, trace, category);
   return {
     source: 'ifct',
     sourceCode: row.code,
@@ -168,6 +171,33 @@ export function ifctFood(row: Row): FoodRecord {
     serving: null,
     portions: [],
   };
+}
+
+/** Where IFCT's vitamin D can be real: animal foods, and mushrooms (D2, made in sunlight). */
+const VITAMIN_D_CATEGORIES = new Set(['fish', 'egg', 'meat', 'poultry', 'dairy', 'mushroom']);
+
+/**
+ * Two slips in the IFCT numbers, found by checking Stage 9's nutrient ranges (2026-09-28):
+ * - Fish vitamin B6 and biotin are 1000× too big (B6 averages 131 mg per 100 g; fish has
+ *   0.1–0.9 mg, and 100 mg a day is the safe upper level). Divided by 1000.
+ * - Plant foods list vitamin D (curry leaves 117 µg, pomegranate 109 µg, soya bean 70 µg per
+ *   100 g); plants other than mushrooms have next to none. Left as unknown.
+ */
+export function fixIfctSlips(
+  nutrients: FoodRecord['nutrients'],
+  trace: FoodRecord['trace'],
+  category: string,
+): void {
+  if (category === 'fish') {
+    for (const key of ['vit_b6_mg', 'biotin_ug'] as const) {
+      nutrients[key] = scale(nutrients[key], 1 / 1000);
+      trace[key] = `${trace[key]} ÷ 1000 (IFCT fish slip)`;
+    }
+  }
+  if (!VITAMIN_D_CATEGORIES.has(category) && nutrients.vit_d_ug !== null) {
+    trace.vit_d_ug = `${trace.vit_d_ug} → unknown (plant food)`;
+    nutrients.vit_d_ug = null;
+  }
 }
 
 /** Reads the package CSV. Its header cells look like "Food Code; code" — we keep the short code. */

@@ -1,10 +1,13 @@
-import type { DayTargets } from '@/lib/nutrition';
-import { PLACEHOLDER_TARGETS } from '@/lib/placeholderTargets';
+import { useMemo } from 'react';
+
+import type { TargetValues } from '@/lib/targets';
+import { targetsOnDay, useGoalsStore } from '@/stores/goals';
 
 /**
- * The targets for a day. For now always the placeholder targets, marked as such so the screen
- * can say so; Stage 5 reads the `targets` row in effect on `day` (SPEC §4.2) instead.
+ * The targets in effect on `day` (SPEC §4.2): the latest `targets` row that had started by then.
+ * `null` only if no targets were ever saved (onboarding always saves some).
  */
-export function useDayTargets(_day: string): { targets: DayTargets; isPlaceholder: boolean } {
-  return { targets: PLACEHOLDER_TARGETS, isPlaceholder: true };
+export function useDayTargets(day: string): TargetValues | null {
+  const rows = useGoalsStore((state) => state.targetRows);
+  return useMemo(() => targetsOnDay(rows, day), [rows, day]);
 }

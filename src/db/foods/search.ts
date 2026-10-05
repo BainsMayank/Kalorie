@@ -100,8 +100,12 @@ interface DetailRow {
 }
 
 /** Name, source, usual portion and kcal for the foods to show, in the given order. */
-async function resultRows(db: ReadDb, ids: readonly number[]): Promise<FoodSearchResult[]> {
-  if (ids.length === 0) return [];
+async function resultRows(
+  db: ReadDb,
+  ranked: readonly { id: number; tier: number; uses: number }[],
+): Promise<FoodSearchResult[]> {
+  if (ranked.length === 0) return [];
+  const ids = ranked.map((r) => r.id);
   const rows = await db.getAllAsync<DetailRow>(
     `SELECT f.id, f.name, f.name_hi, f.source, f.default_qty, f.default_unit,
             f.density_g_per_ml, f.energy_kcal,
@@ -115,7 +119,7 @@ async function resultRows(db: ReadDb, ids: readonly number[]): Promise<FoodSearc
     [...ids],
   );
   const byId = new Map(rows.map((r) => [r.id, r]));
-  return ids.flatMap((id) => {
+  return ranked.flatMap(({ id, tier, uses }) => {
     const r = byId.get(id);
     if (!r) return [];
     const gramsPerUnit =
@@ -131,6 +135,8 @@ async function resultRows(db: ReadDb, ids: readonly number[]): Promise<FoodSearc
         defaultUnitLabel: r.unit_label ?? r.default_unit,
         defaultGrams: gramsPerUnit === null ? null : r.default_qty * gramsPerUnit,
         energyKcalPer100g: r.energy_kcal,
+        tier,
+        uses,
       },
     ];
   });
@@ -138,9 +144,14 @@ async function resultRows(db: ReadDb, ids: readonly number[]): Promise<FoodSearc
 
 /**
  * Searches foods by name, Hindi name, synonyms and sound-alike spellings, forgiving small typos
- * (SPEC §5.1). Returns at most `SEARCH_LIMIT` results, best first.
+ * (SPEC §5.1). Returns at most `SEARCH_LIMIT` results, best first. `uses` = food id → times the
+ * person logged it in the last 30 days (those come first on the same match).
  */
-export async function searchFoods(db: ReadDb, query: string): Promise<FoodSearchResult[]> {
+export async function searchFoods(
+  db: ReadDb,
+  query: string,
+  uses?: ReadonlyMap<number, number>,
+): Promise<FoodSearchResult[]> {
   const words = queryWords(query);
   if (normalizeText(query).length < MIN_QUERY_LENGTH) return [];
 
@@ -172,9 +183,10 @@ export async function searchFoods(db: ReadDb, query: string): Promise<FoodSearch
     pinnedIds: new Set(pinned.map((p) => p.id)),
     typoIds,
     typoQueries,
+    uses,
   });
   return resultRows(
     db,
-    ranked.slice(0, SEARCH_LIMIT).map((r) => r.food.id),
+    ranked.slice(0, SEARCH_LIMIT).map((r) => ({ id: r.food.id, tier: r.tier, uses: r.uses })),
   );
 }

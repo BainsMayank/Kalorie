@@ -1,4 +1,14 @@
-import { absorbedFryingOilGrams, oilAdjustedPer100, oilFactor, per100WithoutPart } from './oil';
+import { NUTRIENT_KEYS, emptyNutrients } from './nutrients';
+import {
+  OIL_NUTRIENTS,
+  absorbedFryingOilGrams,
+  genericOilStep,
+  oilAdjustedPer100,
+  oilFactor,
+  per100WithoutPart,
+  recipeOilStep,
+  withOilLevel,
+} from './oil';
 
 describe('oilFactor', () => {
   it('maps Less / Normal / More to 0.5 / 1 / 1.5', () => {
@@ -60,5 +70,52 @@ describe('absorbedFryingOilGrams', () => {
 
   it('never keeps more oil than the recipe lists', () => {
     expect(absorbedFryingOilGrams(9, 300)).toBe(9);
+  });
+});
+
+describe('withOilLevel', () => {
+  // 1 katori (150 g) of a dish with 3 g fat and 4 g protein, cooked with oil but without a recipe.
+  const portion = { ...emptyNutrients(), energy_kcal: 120, protein_g: 4, carb_g: 15, fat_g: 3 };
+  const step = genericOilStep();
+
+  it('adds or takes away 5 g of oil per 150 g (45 kcal)', () => {
+    expect(withOilLevel(portion, step, 150, 1).energy_kcal).toBeCloseTo(165);
+    expect(withOilLevel(portion, step, 150, 1).fat_g).toBeCloseTo(8);
+    expect(withOilLevel(portion, step, 300, 1).fat_g).toBeCloseTo(13); // 2 katori: 10 g
+  });
+
+  it('changes fat and calories only', () => {
+    const more = withOilLevel(portion, step, 150, 1);
+    for (const key of NUTRIENT_KEYS) {
+      if ((OIL_NUTRIENTS as readonly string[]).includes(key)) continue;
+      expect(more[key]).toBe(portion[key]);
+    }
+  });
+
+  it('never takes out more fat than the portion has, and keeps unknown values unknown', () => {
+    const less = withOilLevel(portion, step, 150, -1);
+    expect(less.fat_g).toBe(0);
+    expect(less.energy_kcal).toBeCloseTo(75);
+    expect(less.sat_fat_g).toBeNull();
+  });
+
+  it('changes nothing at Normal or without a step', () => {
+    expect(withOilLevel(portion, step, 150, 0)).toBe(portion);
+    expect(withOilLevel(portion, null, 150, 1)).toBe(portion);
+  });
+});
+
+describe('recipeOilStep', () => {
+  it('is half the fat ingredients per 100 g of the dish (dal: 10 g ghee in 600 g)', () => {
+    const ghee = { grams: 10, nutrients: { energy_kcal: 900, fat_g: 99.5, protein_g: 0.3 } };
+    const step = recipeOilStep([ghee], 600)!;
+    expect(step.energy_kcal).toBeCloseTo(7.5); // 45 kcal ÷ 6
+    expect(step.fat_g).toBeCloseTo(0.829, 3);
+    expect(step.sat_fat_g).toBe(0); // unknown in the ghee: moves nothing
+  });
+
+  it('has no step without fat, or without a weight', () => {
+    expect(recipeOilStep([], 600)).toBeNull();
+    expect(recipeOilStep([{ grams: 10, nutrients: { fat_g: 100 } }], 0)).toBeNull();
   });
 });

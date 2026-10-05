@@ -1,0 +1,77 @@
+CREATE TABLE `my_thali_items` (
+	`id` text PRIMARY KEY NOT NULL,
+	`thali_id` text NOT NULL,
+	`position` integer NOT NULL,
+	`food_source` text NOT NULL,
+	`food_id` text NOT NULL,
+	`name` text NOT NULL,
+	`qty` real NOT NULL,
+	`unit` text NOT NULL,
+	`grams` real NOT NULL,
+	`oil_level` integer DEFAULT 0 NOT NULL,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
+	`deleted_at` integer
+);
+--> statement-breakpoint
+CREATE INDEX `my_thali_items_thali_idx` ON `my_thali_items` (`thali_id`,`deleted_at`);--> statement-breakpoint
+CREATE TABLE `my_thalis` (
+	`id` text PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
+	`deleted_at` integer
+);
+--> statement-breakpoint
+CREATE TABLE `recipe_items` (
+	`id` text PRIMARY KEY NOT NULL,
+	`recipe_id` text NOT NULL,
+	`position` integer NOT NULL,
+	`food_source` text NOT NULL,
+	`food_id` text NOT NULL,
+	`name` text NOT NULL,
+	`qty` real NOT NULL,
+	`unit` text NOT NULL,
+	`grams` real NOT NULL,
+	`is_fat` integer DEFAULT false NOT NULL,
+	`energy_kcal` real,
+	`protein_g` real,
+	`carb_g` real,
+	`fat_g` real,
+	`fibre_g` real,
+	`sugar_g` real,
+	`sat_fat_g` real,
+	`mufa_g` real,
+	`pufa_g` real,
+	`trans_fat_g` real,
+	`cholesterol_mg` real,
+	`sodium_mg` real,
+	`potassium_mg` real,
+	`calcium_mg` real,
+	`iron_mg` real,
+	`magnesium_mg` real,
+	`phosphorus_mg` real,
+	`zinc_mg` real,
+	`copper_mg` real,
+	`manganese_mg` real,
+	`selenium_ug` real,
+	`iodine_ug` real,
+	`vit_a_ug` real,
+	`thiamine_mg` real,
+	`riboflavin_mg` real,
+	`niacin_mg` real,
+	`pantothenic_mg` real,
+	`vit_b6_mg` real,
+	`biotin_ug` real,
+	`folate_ug` real,
+	`vit_b12_ug` real,
+	`vit_c_mg` real,
+	`vit_d_ug` real,
+	`vit_e_mg` real,
+	`vit_k_ug` real,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
+	`deleted_at` integer
+);
+--> statement-breakpoint
+CREATE INDEX `recipe_items_recipe_idx` ON `recipe_items` (`recipe_id`,`deleted_at`);

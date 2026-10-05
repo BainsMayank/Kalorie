@@ -14,6 +14,8 @@ export type ColorTokens = {
   textSecondary: string;
   iconInactive: string; // also inactive tab labels, so it must pass AA contrast as text
   scrim: string; // dims the screen behind a bottom sheet
+  cameraOverlay: string; // dims the camera picture around the barcode frame
+  onCamera: string; // text, icons and the frame drawn on top of the camera picture
   // Accents (meaningful only)
   protein: string;
   carbs: string;
@@ -25,6 +27,11 @@ export type ColorTokens = {
   offTarget: string;
   notice: string;
   partial: string;
+  // Calendar day fills (SPEC §5.6): soft tints behind the day number, which stays in `text`.
+  onTargetFill: string;
+  nearFill: string; // a bit under or over
+  farFill: string; // far off — a deeper blue, never red
+  partialFill: string;
 };
 
 const light: ColorTokens = {
@@ -36,6 +43,8 @@ const light: ColorTokens = {
   textSecondary: '#595959',
   iconInactive: '#707070',
   scrim: 'rgba(0, 0, 0, 0.4)',
+  cameraOverlay: 'rgba(0, 0, 0, 0.5)',
+  onCamera: '#FFFFFF',
   protein: '#4F5BD5',
   carbs: '#B07D22',
   fat: '#2A8C82',
@@ -46,6 +55,10 @@ const light: ColorTokens = {
   offTarget: '#5B84C4',
   notice: '#C98A1B',
   partial: '#C8C8C8',
+  onTargetFill: '#CDE8D6',
+  nearFill: '#DCE6F6',
+  farFill: '#B3C8EA',
+  partialFill: '#E4E4E4',
 };
 
 const dark: ColorTokens = {
@@ -57,6 +70,8 @@ const dark: ColorTokens = {
   textSecondary: '#A8A8A8',
   iconInactive: '#8F8F8F',
   scrim: 'rgba(0, 0, 0, 0.6)',
+  cameraOverlay: 'rgba(0, 0, 0, 0.5)',
+  onCamera: '#FFFFFF',
   protein: '#8C95F0',
   carbs: '#D9AE5C',
   fat: '#5CC2B6',
@@ -67,6 +82,10 @@ const dark: ColorTokens = {
   offTarget: '#8FB0E0',
   notice: '#E3B35A',
   partial: '#555555',
+  onTargetFill: '#27483A',
+  nearFill: '#26344A',
+  farFill: '#35507A',
+  partialFill: '#303030',
 };
 
 export const colors: Record<ColorScheme, ColorTokens> = { light, dark };

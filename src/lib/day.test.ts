@@ -6,7 +6,6 @@ import {
   defaultEntryMinute,
   isInWindow,
   logicalDay,
-  minuteOfLogicalDay,
   relativeDay,
   timeOnDay,
   timeParts,
@@ -81,8 +80,6 @@ describe('time helpers', () => {
   it('orders the hours of a logical day from 4 am to 3 am', () => {
     expect(LOGICAL_DAY_HOURS[0]).toBe(4);
     expect(LOGICAL_DAY_HOURS.slice(-4)).toEqual([0, 1, 2, 3]);
-    expect(minuteOfLogicalDay(hm(4))).toBe(0);
-    expect(minuteOfLogicalDay(hm(3, 59))).toBe(1439);
   });
 
   it('changes the hour or the minutes of a time', () => {

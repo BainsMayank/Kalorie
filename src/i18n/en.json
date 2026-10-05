@@ -9,28 +9,198 @@
     "trends": "Trends",
     "profile": "Profile"
   },
+  "onboarding": {
+    "welcome": "Kalorie helps you notice what you eat. Setup takes under a minute.",
+    "titles": {
+      "goal": "What would you like to do?",
+      "about": "About you",
+      "activity": "How active is a normal week?",
+      "targets": "Your starting targets"
+    },
+    "aboutHint": "This works out your starting targets. Leave out anything you'd rather not share.",
+    "back": "Back",
+    "skip": "Skip",
+    "skipQuestion": "Skip this question",
+    "next": "Next",
+    "start": "Start logging",
+    "skipAll": "Skip — just let me log",
+    "progress": "Step {{step}} of {{total}}",
+    "startingPoint": "These are a starting point. You can change them any time in Profile → Goals.",
+    "noTarget": {
+      "track": "No calorie target — you'll see what you eat, and the daily limits below still apply.",
+      "under18": "Kalorie's targets are made for adults, so we'll skip them. You can still log what you eat.",
+      "missing": "For a calorie target we need your age, height and weight. You can add them any time in Profile → Goals."
+    },
+    "remindMeals": "Remind me at meal times",
+    "remindHint": "Breakfast {{breakfast}}, lunch {{lunch}} and dinner {{dinner}}, skipped when you've already logged that meal. Change them any time in Profile → Reminders.",
+    "remindBlocked": "Notifications are turned off for Kalorie in your phone's settings, so there's nothing to switch on. You can turn them on later."
+  },
+  "about": {
+    "sex": "Sex",
+    "sexOptions": {
+      "m": "Male",
+      "f": "Female",
+      "x": "Prefer not to say"
+    },
+    "age": "Age",
+    "years": "years",
+    "weight": "Weight",
+    "kg": "kg",
+    "height": "Height",
+    "heightUnit": "Height in",
+    "cm": "cm",
+    "ftIn": "ft + in",
+    "feet": "ft",
+    "inches": "Inches",
+    "inchesUnit": "in",
+    "under18": "Kalorie's targets are made for adults, so we'll skip them. You can still log what you eat.",
+    "activity": "Activity",
+    "activityOptions": {
+      "sedentary": {
+        "title": "Mostly sitting",
+        "detail": "Desk work, little walking"
+      },
+      "light": {
+        "title": "Light",
+        "detail": "Walks, housework"
+      },
+      "moderate": {
+        "title": "Moderate",
+        "detail": "Exercise 3–5 days a week"
+      },
+      "active": {
+        "title": "Active",
+        "detail": "Exercise 6–7 days a week"
+      },
+      "very_active": {
+        "title": "Very active",
+        "detail": "Physical job plus exercise"
+      }
+    },
+    "goal": "Goal",
+    "goalOptions": {
+      "lose": {
+        "title": "Lose weight",
+        "detail": "Slowly and steadily"
+      },
+      "maintain": {
+        "title": "Keep my weight",
+        "detail": "Eat about what you use"
+      },
+      "gain": {
+        "title": "Gain weight",
+        "detail": "A little more each day"
+      },
+      "track": {
+        "title": "Just track",
+        "detail": "No calorie target, just notice what you eat"
+      }
+    },
+    "pace": "Pace",
+    "paceOptions": {
+      "gentle": "Gentle · 0.25 kg a week",
+      "steady": "Steady · 0.5 kg a week",
+      "gain": "0.25 kg a week"
+    }
+  },
+  "targets": {
+    "kcalPerDay": "kcal a day",
+    "grams": "{{value}} g",
+    "fibre": "Fibre",
+    "limitsLine": "Daily limits: sodium {{sodium}} mg · sugar {{sugar}} g · saturated fat {{satFat}} g · fat {{fat}} g"
+  },
+  "floor": {
+    "note": "This is lower than we'd suggest ({{floor}} kcal). Eating this little for long can be hard on your body — please check with a doctor. You can still keep it.",
+    "use": "Use {{floor}} kcal"
+  },
+  "goals": {
+    "title": "Goals",
+    "about": "About you",
+    "targets": "Daily targets",
+    "kcal": "Calories",
+    "kcalHint": "Changing calories moves protein, carbs, fat and the limits to match. Leave it empty for no calorie target.",
+    "limits": "Daily limits",
+    "limitsHint": "When a limit is reached, a calm note shows on Today, once a day. The switch beside each limit turns its note off.",
+    "limitLabel": "{{nutrient}} limit",
+    "alertFor": "Note on Today for {{nutrient}}",
+    "notification": "Also send a phone notification",
+    "notificationHint": "Off unless you turn it on. At most once per nutrient per day.",
+    "notificationBlocked": "Notifications are turned off for Kalorie in your phone's settings.",
+    "save": "Save",
+    "reset": "Reset to suggested",
+    "saved": "Saved. These apply from today; earlier days keep their targets.",
+    "micros": "Vitamins and minerals",
+    "microsHint": "Daily needs from ICMR-NIN 2020 for your sex, age and activity. See how you're doing under Vitamins & minerals on Today.",
+    "microNeed": "{{value}} {{unit}}",
+    "microUpper": "upper limit {{value}} {{unit}}",
+    "microUpperSupplements": "upper limit {{value}} {{unit}} from supplements",
+    "microLimitOnly": "up to {{value}} {{unit}}",
+    "waterGoal": "Daily water goal",
+    "waterGlass": "One glass",
+    "waterHint": "Each tap on + in the water row on Today adds one glass. Long-press + for a different amount."
+  },
+  "alerts": {
+    "title": "Today so far",
+    "names": {
+      "fat": "Fat",
+      "sat_fat": "Saturated fat",
+      "sugar": "Sugar",
+      "sodium": "Sodium"
+    },
+    "above": "{{nutrient}} is {{amount}} {{unit}} above today's limit.",
+    "reached": "{{nutrient}} has reached today's limit.",
+    "nextStep": "A lighter next meal balances it out.",
+    "close": "Close for today",
+    "channelName": "Daily limits"
+  },
+  "bands": {
+    "start": "Just getting started",
+    "half": "About halfway",
+    "nearly": "Nearly there",
+    "target": {
+      "around": "Around your target",
+      "more": "A bit more than planned"
+    },
+    "need": {
+      "around": "Around your daily need",
+      "more": "More than your daily need"
+    },
+    "limit": {
+      "around": "Around your daily limit",
+      "more": "Above your daily limit"
+    }
+  },
   "today": {
     "previousDay": "Previous day",
     "nextDay": "Next day",
     "pickDayHint": "Opens a calendar to pick a day",
     "ring": {
-      "eaten": "eaten",
       "ofTarget": "of {{target}} kcal",
       "left": "{{value}} kcal left",
       "more": "{{value}} kcal more than planned",
       "atTarget": "Right on your target",
-      "label": "{{eaten}} of {{target}} kcal eaten. {{status}}"
+      "label": "{{eaten}} of {{target}} kcal eaten. {{status}}",
+      "kcalEaten": "kcal eaten",
+      "labelNoTarget": "{{eaten}} kcal eaten",
+      "nothingYet": "Nothing logged yet",
+      "itemsLogged_one": "{{count}} item logged",
+      "itemsLogged_other": "{{count}} items logged",
+      "labelHidden": "Calories today: {{status}}"
     },
-    "placeholderTargets": "These are sample targets for now. You'll be able to set your own soon.",
+    "addBodyForTarget": "Add your age, height and weight in Goals to see a calorie target.",
     "macrosTitle": "Macros",
     "macroGrams": "{{eaten}} of {{target}} g",
+    "macroGramsNoTarget": "{{eaten}} g",
     "macroShare": "{{value}}%",
     "macroLabel": "{{macro}}: {{eaten}} of {{target}} g, {{share}}% of calories from macros",
     "macroLabelNoShare": "{{macro}}: {{eaten}} of {{target}} g",
+    "macroLabelNoTarget": "{{macro}}: {{eaten}} g",
+    "macroLabelHidden": "{{macro}}: {{status}}",
     "topTitle": "Top contributors",
     "topNone": "Nothing yet",
     "topAmount": "{{grams}} g · {{percent}}%",
     "topLabel": "{{macro}} from {{name}}: {{grams}} g, {{percent}}% of the day's total",
+    "topLabelHidden": "{{macro}} from {{name}}",
     "mealsTitle": "Meals",
     "empty": {
       "title": "A fresh page",
@@ -45,10 +215,38 @@
     "addTo": "Add food to {{slot}}",
     "emptySlot": "Nothing logged here yet.",
     "entryHint": "Opens the entry to change it",
-    "loadProblem": "Your log couldn't be opened. Please close the app and open it again."
+    "loadProblem": "Your log couldn't be opened. Please close the app and open it again.",
+    "scan": "Scan barcode",
+    "deleted_one": "Recently deleted ({{count}})",
+    "deleted_other": "Recently deleted ({{count}})"
+  },
+  "deleted": {
+    "title": "Recently deleted",
+    "note": "Things you delete stay here for 30 days.",
+    "restore": "Bring back",
+    "restoreLabel": "Bring back {{name}}"
   },
   "trends": {
-    "placeholder": "Patterns over the week and month will show up here."
+    "view": "Show",
+    "calendar": "Calendar",
+    "week": "Week",
+    "month": "Month",
+    "calories": "Calories",
+    "macros": "Macros",
+    "nothingYet": "Nothing logged in these days yet.",
+    "kcalAverage_one": "On average {{average}} of {{target}} kcal a day · {{onTarget}} of {{count}} day on target",
+    "kcalAverage_other": "On average {{average}} of {{target}} kcal a day · {{onTarget}} of {{count}} days on target",
+    "kcalAverageNoTarget_one": "On average {{average}} kcal a day, across {{count}} logged day",
+    "kcalAverageNoTarget_other": "On average {{average}} kcal a day, across {{count}} logged days",
+    "kcalOnTarget_one": "{{onTarget}} of {{count}} logged day on target",
+    "kcalOnTarget_other": "{{onTarget}} of {{count}} logged days on target",
+    "loggedDays_one": "{{count}} logged day",
+    "loggedDays_other": "{{count}} logged days",
+    "perDay": "Average a day, across the days you logged",
+    "macroAverage": "{{average}} of {{target}} g",
+    "macroAverageNoTarget": "{{average}} g",
+    "waterNone": "No water logged in these days yet.",
+    "waterAverage": "On average {{average}} ml a day · goal {{goal}} ml"
   },
   "profile": {
     "appearance": "Appearance",
@@ -58,7 +256,41 @@
       "light": "Light",
       "dark": "Dark"
     },
-    "moreSoon": "Your goals, account and other options will show up here."
+    "goals": "Goals",
+    "goalsKcal": "{{kcal}} kcal a day",
+    "goalsTrack": "Just tracking, no calorie target",
+    "goalsHidden": "Your targets and limits",
+    "about": "About & data sources",
+    "recipes": "Recipes",
+    "recipesHint": "Build a dish from its ingredients",
+    "food": "Food",
+    "diet": "I eat",
+    "dietOptions": {
+      "any": "Everything",
+      "veg": "Vegetarian",
+      "egg": "Vegetarian + eggs"
+    },
+    "dietHint": "Foods rich in a vitamin or mineral are suggested to match.",
+    "reminders": "Reminders",
+    "remindersOff": "Off",
+    "numbers": "Numbers",
+    "hideNumbers": "Hide numbers",
+    "hideNumbersHint": "Shows shapes and words instead of calories, grams and weight. Logging works just the same.",
+    "language": "Language",
+    "languageOptions": {
+      "system": "Same as phone",
+      "en": "English",
+      "hi": "हिन्दी"
+    },
+    "export": "Export CSV",
+    "exportHint": "Your log, weight and water as spreadsheet files",
+    "account": "Account",
+    "accountSignedIn": "Signed in as {{email}}",
+    "accountOptional": "Optional — Kalorie works the same without one",
+    "group": "My group",
+    "groupHint": "Share recipes and packets with family and friends",
+    "privacy": "Privacy",
+    "privacyHint": "What is stored, and where"
   },
   "search": {
     "placeholder": "Search foods, like dal, roti or dahi",
@@ -80,7 +312,6 @@
     "grams": "≈ {{grams}} g",
     "kcal": "{{value}} kcal",
     "amountWithUnit": "{{value}} {{unit}}",
-    "thisPortion": "This portion",
     "per100g": "Per 100 g",
     "unknown": "—",
     "unknownNote": "— means the data for this food doesn’t include it.",
@@ -92,18 +323,29 @@
       "mineral": "Minerals",
       "vitamin": "Vitamins"
     },
-    "addToLog": "Add to log"
+    "addToLog": "Add to log",
+    "incomplete": "Incomplete data",
+    "incompleteNote": "Incomplete data: most vitamins and minerals aren’t known for this food, so they show as —. Unknown isn’t zero.",
+    "numbersHidden": "Numbers are hidden. You can show them again in Profile → Hide numbers."
   },
   "sources": {
     "short": {
       "indb": "INDB",
       "ifct": "IFCT",
-      "usda": "USDA"
+      "usda": "USDA",
+      "product": "Product",
+      "custom": "My food",
+      "recipe": "My recipe",
+      "group": "Group"
     },
     "long": {
       "indb": "Indian Nutrient Databank",
       "ifct": "Indian Food Composition Tables 2017",
-      "usda": "USDA FoodData Central"
+      "usda": "USDA FoodData Central",
+      "product": "Packaged product",
+      "custom": "Your own food",
+      "recipe": "Your recipe",
+      "group": "Shared in your group"
     }
   },
   "nutrients": {
@@ -163,7 +405,18 @@
     "favourites": "Favourites",
     "recentEmpty": "Foods you log will show up here, ready to add again.",
     "favouritesEmpty": "Tap ☆ on any food to keep it here.",
-    "logPortion": "Add {{portion}} {{name}} to {{slot}}"
+    "logPortion": "Add {{portion}} {{name}} to {{slot}}",
+    "scan": "Scan barcode",
+    "myFoods": "My foods",
+    "thalis": "Thalis",
+    "myFoodsEmpty": "Your recipes and scanned packets show up here.",
+    "newRecipe": "New recipe",
+    "thalisEmpty": "Save any meal as a thali with the bookmark on its card, then log it here in one go.",
+    "thaliItems_one": "{{count}} item · {{kcal}} kcal",
+    "thaliItems_other": "{{count}} items · {{kcal}} kcal",
+    "thaliItemsHidden_one": "{{count}} item",
+    "thaliItemsHidden_other": "{{count}} items",
+    "starterThalis": "Starter thalis"
   },
   "entry": {
     "editTitle": "Edit entry",
@@ -171,7 +424,8 @@
     "done": "Done",
     "delete": "Delete",
     "forDay": "For {{day}}",
-    "saveProblem": "That didn't save. Please try again."
+    "saveProblem": "That didn't save. Please try again.",
+    "foodGone": "This food isn't in Kalorie any more, so its amount can't be changed. You can still delete it."
   },
   "slots": {
     "label": "Meal",
@@ -199,6 +453,15 @@
       "fri": "Fri",
       "sat": "Sat"
     },
+    "weekdaysLong": {
+      "sun": "Sunday",
+      "mon": "Monday",
+      "tue": "Tuesday",
+      "wed": "Wednesday",
+      "thu": "Thursday",
+      "fri": "Friday",
+      "sat": "Saturday"
+    },
     "months": {
       "jan": "Jan",
       "feb": "Feb",
@@ -212,6 +475,20 @@
       "oct": "Oct",
       "nov": "Nov",
       "dec": "Dec"
+    },
+    "monthsLong": {
+      "jan": "January",
+      "feb": "February",
+      "mar": "March",
+      "apr": "April",
+      "may": "May",
+      "jun": "June",
+      "jul": "July",
+      "aug": "August",
+      "sep": "September",
+      "oct": "October",
+      "nov": "November",
+      "dec": "December"
     }
   },
   "time": {
@@ -252,6 +529,613 @@
     "logged": "Added {{name}} to {{slot}}",
     "deleted": "Removed {{name}}",
     "copied_one": "Copied {{count}} item to {{day}}",
-    "copied_other": "Copied {{count}} items to {{day}}"
+    "copied_other": "Copied {{count}} items to {{day}}",
+    "savedThali": "Saved {{name}}",
+    "deletedThali": "Deleted {{name}}",
+    "deletedRecipe": "Deleted {{name}}",
+    "loggedMany_one": "Added {{count}} item to {{slot}}",
+    "loggedMany_other": "Added {{count}} items to {{slot}}",
+    "restored": "Brought back {{name}}"
+  },
+  "scan": {
+    "title": "Scan barcode",
+    "hint": "Point the camera at the barcode on the packet.",
+    "torchOn": "Turn on the light",
+    "torchOff": "Turn off the light",
+    "type": "Type the number",
+    "gallery": "Pick from gallery",
+    "galleryNone": "No barcode found in that photo. Try a sharp photo taken close to the barcode.",
+    "galleryProblem": "That photo couldn't be read. Please try another one.",
+    "permissionTitle": "Scan packets with your camera",
+    "permissionReason": "Kalorie uses the camera only to read barcodes on food packets. Nothing is recorded or sent anywhere.",
+    "allow": "Allow camera",
+    "blocked": "Camera access is off for Kalorie. You can turn it on in your phone's settings, or type the number instead.",
+    "openSettings": "Open settings",
+    "cameraProblem": "The camera couldn't start. You can type the number instead.",
+    "looking": "Looking up {{code}}…",
+    "typeTitle": "Type the barcode number",
+    "typeHint": "The 8 or 13 digits printed under the bars.",
+    "typeLabel": "Barcode number",
+    "lookUp": "Look up",
+    "problems": {
+      "empty": "Type the number printed under the bars.",
+      "notDigits": "A barcode has only digits.",
+      "length": "A packet barcode has 8, 12 or 13 digits.",
+      "checkDigit": "That number doesn't add up — a digit may be mistyped. Please check it."
+    },
+    "offlineTitle": "Couldn't look this up right now",
+    "offlineBody": "You may be offline. Kalorie will look up {{code}} when you're back online — it waits under Pending lookups on Today.",
+    "quickAdd": "Quick add now",
+    "addFromLabel": "Add from label",
+    "scanAnother": "Scan another",
+    "lookupProblem": "Something went wrong while looking this up. Please try again."
+  },
+  "label": {
+    "title": "Add from label",
+    "notFound": "This packet isn't in Open Food Facts yet. Copy the numbers from its label — next time, scanning finds it straight away.",
+    "noNutrition": "Open Food Facts knows this packet but not its nutrition. Copy the numbers from its label.",
+    "name": "Name",
+    "namePlaceholder": "Like “Masala peanuts”",
+    "brand": "Brand (optional)",
+    "barcode": "Barcode {{code}}",
+    "per": "Values are per",
+    "perOptions": {
+      "100g": "100 g",
+      "100ml": "100 ml",
+      "serving": "One serving"
+    },
+    "perHint": "Indian labels show values per 100 g and per serving — copy either column.",
+    "servingSize": "Serving size",
+    "servingSizeOptional": "Serving size (optional)",
+    "packSize": "Pack size (optional)",
+    "values": "Nutrition",
+    "optional": "optional",
+    "nameRequired": "Add a name.",
+    "kcalRequired": "Add the energy (kcal).",
+    "servingRequired": "Add the serving size in grams.",
+    "photo": "Photo of the label (optional)",
+    "takePhoto": "Take photo",
+    "choosePhoto": "Choose photo",
+    "removePhoto": "Remove photo",
+    "photoAlt": "Photo of the label",
+    "cameraBlocked": "Camera access is off for Kalorie. You can choose a photo instead.",
+    "save": "Save",
+    "saveProblem": "That didn't save. Please try again.",
+    "fields": {
+      "energy_kcal": "Energy",
+      "protein_g": "Protein",
+      "carb_g": "Carbohydrate",
+      "sugar_g": "of which sugars",
+      "fat_g": "Total fat",
+      "sat_fat_g": "of which saturated fat",
+      "trans_fat_g": "of which trans fat",
+      "fibre_g": "Dietary fibre",
+      "sodium_mg": "Sodium",
+      "cholesterol_mg": "Cholesterol"
+    }
+  },
+  "product": {
+    "fromOff": "Food data from Open Food Facts (ODbL)",
+    "fromLabel": "Typed in from the label",
+    "barcode": "Barcode {{code}}",
+    "unnamed": "Product {{code}}"
+  },
+  "units": {
+    "serving": "serving",
+    "pack": "pack",
+    "ml": "ml"
+  },
+  "pending": {
+    "title": "Pending lookups",
+    "waiting": "Waiting for internet",
+    "found": "Found — tap to log it",
+    "notFound": "Not found — tap to add it from the label",
+    "retry": "Try again now",
+    "trying": "Looking up…",
+    "remove": "Remove {{code}} from the list"
+  },
+  "aboutApp": {
+    "title": "About Kalorie",
+    "version": "Version {{version}}",
+    "tagline": "Free and ad-free. What you log stays on your phone.",
+    "dataTitle": "Food data and credits",
+    "sources": {
+      "indb": {
+        "name": "Indian Nutrient Databank (INDB)",
+        "detail": "Indian dishes and their recipes, from Anuvaad Solutions. Vijayakumar A. et al., Development of an Indian Food Composition Database, Current Developments in Nutrition, 2024."
+      },
+      "ifct": {
+        "name": "Indian Food Composition Tables 2017",
+        "detail": "Raw foods. © ICMR–National Institute of Nutrition, Hyderabad (Longvah T. et al., 2017)."
+      },
+      "usda": {
+        "name": "USDA FoodData Central",
+        "detail": "Foundation Foods and SR Legacy. U.S. Department of Agriculture, Agricultural Research Service. Public domain."
+      },
+      "off": {
+        "name": "Open Food Facts",
+        "detail": "Food data from Open Food Facts (ODbL). Packet details © Open Food Facts contributors, under the Open Database License."
+      },
+      "icmr": {
+        "name": "ICMR–NIN 2020",
+        "detail": "Daily needs and upper limits from Nutrient Requirements for Indians (RDA and EAR 2020), ICMR–National Institute of Nutrition."
+      }
+    },
+    "offLink": "Visit openfoodfacts.org",
+    "odblLink": "Read the Open Database License",
+    "licencesLink": "Open-source licences"
+  },
+  "licences": {
+    "title": "Open-source licences",
+    "intro": "Kalorie is built with {{count}} open-source libraries. Thank you to the people who make them. Tap a library to read its licence.",
+    "versionLicence": "{{version}} · {{licence}}",
+    "toggleHint": "Shows or hides the licence text",
+    "npmLink": "Read the licence on npm"
+  },
+  "oil": {
+    "label": "Oil / ghee",
+    "less": "Less",
+    "normal": "Normal",
+    "more": "More",
+    "hint": "Changes only the fat and calories."
+  },
+  "recipe": {
+    "newTitle": "New recipe",
+    "editTitle": "Edit recipe",
+    "name": "Name",
+    "namePlaceholder": "Like “Mom’s rajma”",
+    "servings": "Servings",
+    "cookedWeight": "Cooked weight (optional)",
+    "cookedWeightHint": "Weigh the whole dish after cooking, without the pot. Water boils off or soaks in while cooking, so this makes 1 katori and 100 g right. Leave it empty to use the raw weight.",
+    "ingredients": "Ingredients",
+    "addIngredient": "Add ingredient",
+    "noIngredients": "Add what goes into the pot — search like you do for any food.",
+    "fatTag": "Oil/ghee",
+    "itemAmount": "{{amount}} · {{grams}} g",
+    "perServing": "Per serving",
+    "servingWeight": "One serving ≈ {{grams}} g",
+    "per100Cooked": "Per 100 g cooked",
+    "per100Raw": "Per 100 g (raw weight)",
+    "per100Line": "{{kcal}} kcal · protein {{protein}} g · carbs {{carbs}} g · fat {{fat}} g",
+    "katoriLine": "1 katori (150 g) ≈ {{kcal}} kcal",
+    "katoriNeedsWeight": "Add the cooked weight to log this by the katori.",
+    "save": "Save recipe",
+    "needs": "Add a name, the servings and at least one ingredient to save.",
+    "editNote": "Changes also update the days you’ve logged this recipe.",
+    "copyName": "{{name}} (copy)",
+    "edit": "Edit recipe",
+    "duplicate": "Duplicate",
+    "duplicateLabel": "Duplicate {{name}}",
+    "notFound": "This recipe couldn’t be found.",
+    "addToRecipe": "Add to recipe",
+    "remove": "Remove",
+    "isFat": "Oil or ghee",
+    "isFatHint": "Scaled by Less / More oil when you log this recipe.",
+    "pickerTitle": "Add ingredient",
+    "listTitle": "Recipes",
+    "listEmpty": "Your recipes show up here. Build one from its ingredients, then log it by the serving — or by the katori once you add the cooked weight.",
+    "new": "New recipe",
+    "perServingKcal": "{{kcal}} kcal per serving"
+  },
+  "thali": {
+    "saveTitle": "Save {{slot}} as a thali",
+    "name": "Name",
+    "namePlaceholder": "Like “Sunday lunch”",
+    "defaultName": "{{slot}} thali",
+    "items": "In this thali",
+    "quickLeftOut": "Quick adds aren’t saved in a thali.",
+    "nothingToSave": "This meal has only quick adds, so there’s nothing to save as a thali.",
+    "save": "Save thali",
+    "total": "Selected: {{kcal}} kcal",
+    "log_one": "Log {{count}} item to {{slot}}",
+    "log_other": "Log {{count}} items to {{slot}}",
+    "delete": "Delete thali",
+    "pick": "Tick what you’re having and change any amount.",
+    "missing": "No longer available",
+    "checkLabel": "Include {{name}}",
+    "saveMeal": "Save {{slot}} as a thali"
+  },
+  "history": {
+    "dayTitle": "Day",
+    "edit": "Edit",
+    "editLabel": "Edit {{date}} in the Log tab",
+    "emptyDay": "Nothing was logged on this day.",
+    "monthNone": "Nothing logged this month yet.",
+    "monthSummary_one": "{{count}} day logged · {{onTarget}} on target",
+    "monthSummary_other": "{{count}} days logged · {{onTarget}} on target",
+    "monthLogged_one": "{{count}} day logged",
+    "monthLogged_other": "{{count}} days logged",
+    "legend": {
+      "onTarget": "On target",
+      "logged": "Logged",
+      "near": "Close to target",
+      "far": "Further from target",
+      "partial": "Partly logged",
+      "empty": "Not logged"
+    }
+  },
+  "water": {
+    "title": "Water",
+    "amount": "{{ml}} of {{goal}} ml",
+    "glasses_one": "{{value}} glass",
+    "glasses_other": "{{value}} glasses",
+    "add": "Add a glass of water, {{ml}} ml",
+    "addHint": "Long-press to add a different amount",
+    "remove": "Take off the last water",
+    "progressLabel": "Water: {{amount}}, {{glasses}}",
+    "goalReached": "Water goal reached for the day.",
+    "customTitle": "Add water",
+    "customLabel": "Amount",
+    "customAdd": "Add",
+    "ml": "ml"
+  },
+  "weight": {
+    "title": "Weight",
+    "none": "No weigh-ins yet. Add one to start your trend.",
+    "noneInPeriod": "No weigh-ins in these days.",
+    "trendLine": "Trend {{kg}} kg · {{change}}",
+    "change": "{{value}} kg a week",
+    "steady": "steady",
+    "changeWaiting": "the weekly change shows after a week of weigh-ins",
+    "direction": {
+      "down": "Trending down",
+      "up": "Trending up",
+      "steady": "Steady",
+      "waiting": "The trend shows after a week of weigh-ins"
+    },
+    "add": "Add weight",
+    "addTitle": "Add weight",
+    "editTitle": "Weight on {{date}}",
+    "label": "Weight",
+    "day": "Day",
+    "save": "Save",
+    "delete": "Delete weigh-in",
+    "hint": "One weigh-in a day: a new one on the same day replaces it. Weight moves with water and food, so the trend line says more than any single day.",
+    "kg": "{{value}} kg",
+    "editHint": "Opens the weigh-in to change or delete it"
+  },
+  "micros": {
+    "title": "Vitamins & minerals",
+    "period": "Show",
+    "periods": {
+      "day": "Day",
+      "week": "7-day average",
+      "month": "30-day average"
+    },
+    "periodLine_one": "A day, across {{count}} logged day · {{from}} – {{to}}",
+    "periodLine_other": "A day, across {{count}} logged days · {{from}} – {{to}}",
+    "dayNone": "Nothing logged on this day yet. Vitamins and minerals show up here as you log.",
+    "periodNone": "Nothing logged in these days yet.",
+    "groups": {
+      "vitamin": "Vitamins",
+      "mineral": "Minerals",
+      "other": "Fibre, fats and sugar"
+    },
+    "approxNote": "≈ means some foods you ate have no data for it, so the real amount is at least what's shown. Unknown isn't zero.",
+    "quickNote": "Quick adds have no vitamin or mineral data.",
+    "under18": "Daily needs are for adults, so only the amounts are shown.",
+    "amount": "{{value}} {{unit}}",
+    "approxAmount": "≈ {{value}} {{unit}}",
+    "ofNeed": "{{percent}}% of {{need}} {{unit}}",
+    "ofLimit": "{{percent}}% of the {{limit}} {{unit}} limit",
+    "basedOn_one": "At least this · based on {{known}} of {{count}} food",
+    "basedOn_other": "At least this · based on {{known}} of {{count}} foods",
+    "noData": "No data for the foods eaten",
+    "aboveTul": "Above the safe upper level",
+    "rowHint": "Shows where it came from and foods rich in it",
+    "average": "A day, on average",
+    "needLine": "{{percent}}% of your daily need of {{need}} {{unit}}",
+    "limitLine": "{{percent}}% of your daily limit of {{limit}} {{unit}}",
+    "incompleteTitle": "Some foods have no data for this",
+    "incompleteBody_one": "Based on {{known}} of {{count}} food. The real amount is at least this — unknown isn't zero.",
+    "incompleteBody_other": "Based on {{known}} of {{count}} foods. The real amount is at least this — unknown isn't zero.",
+    "missing": "No data: {{names}}",
+    "aboveTulNote": "Above the safe upper level. This usually comes from supplements or fortified foods — worth a look at the label.",
+    "fromTitle": "Where it came from",
+    "fromNone": "None of the foods eaten has data for it.",
+    "fromAmount": "{{amount}} {{unit}} · {{percent}}%",
+    "fromLabel": "{{name}}: {{amount}} {{unit}}, {{percent}}% of the total",
+    "fromLabelHidden": "{{name}}",
+    "richTitle": "Good sources",
+    "richAmount": "{{portion}} · {{amount}} {{unit}}",
+    "richAmountShare": "{{portion}} · {{amount}} {{unit}} · {{percent}}%",
+    "richHint": "Opens the food",
+    "richNone": "Kalorie's food tables have little data on this one.",
+    "richNote": {
+      "any": "One everyday portion each. Set what you eat in Profile to see vegetarian foods first.",
+      "veg": "One everyday portion each. Vegetarian foods first.",
+      "egg": "One everyday portion each. Vegetarian and egg foods first."
+    },
+    "link": "Vitamins & minerals",
+    "linkDay": "Iron, calcium, vitamins and more, next to your daily need",
+    "linkPeriod": "Averaged across the days you logged"
+  },
+  "streak": {
+    "days_one": "{{count}} day streak",
+    "days_other": "{{count}} day streak",
+    "freeLeft_one": "1 free day left this week",
+    "freeLeft_other": "{{count}} free days left this week",
+    "hint": "Explains how the streak works",
+    "sheetTitle": "Your streak",
+    "sheetBody": "Every day with anything logged counts — one meal is enough, and partly logged days count too.",
+    "sheetFree": "Each week, Monday to Sunday, has 2 free days, so a busy day or two doesn't end it. Free days come back every Monday."
+  },
+  "checkin": {
+    "title": "Last week",
+    "close": "Close last week's check-in",
+    "daysLogged": "{{count}} of 7 days logged",
+    "average": "Average {{average}} kcal a day · target {{target}}",
+    "averageNoTarget": "Average {{average}} kcal a day",
+    "bestDayTarget": "Best day: {{day}}, closest to your target",
+    "bestDayTrack": "Best day: {{day}}, the most logged",
+    "weight": {
+      "down": "Weight trend: going down",
+      "up": "Weight trend: going up",
+      "steady": "Weight trend: steady"
+    },
+    "encourage": {
+      "every": "Every day logged. That's a steady habit.",
+      "most": "Most days logged — enough to see your patterns.",
+      "some": "Every day you log adds to the picture."
+    },
+    "nutrients": {
+      "protein_g": "Protein",
+      "iron_mg": "Iron",
+      "calcium_mg": "Calcium",
+      "fibre_g": "Fibre",
+      "vit_b12_ug": "Vitamin B12",
+      "folate_ug": "Folate",
+      "vit_c_mg": "Vitamin C"
+    },
+    "suggestionTitle": "One idea for this week",
+    "nutrientNeed": "{{nutrient}} averaged {{percent}}% of your daily need.",
+    "nutrientTarget": "{{nutrient}} averaged {{percent}}% of your daily target.",
+    "nutrientNeedHidden": "{{nutrient}} came out lower than your daily need last week.",
+    "nutrientTargetHidden": "{{nutrient}} came out lower than your daily target last week.",
+    "ideas": "Two easy adds: {{first}} or {{second}}.",
+    "idea": "One easy add: {{first}}.",
+    "ideaFood": "{{name}} ({{portion}})",
+    "water": "Water averaged {{average}} of {{goal}} ml a day. A glass with each meal adds up.",
+    "logMore": "Logging on a few more days this week will make your patterns clearer — one meal a day counts.",
+    "keepGoing": "Nothing stands out. Keep doing what you're doing.",
+    "feelQuestion": "How did last week feel?",
+    "feelings": {
+      "easy": "Easy",
+      "okay": "Okay",
+      "hard": "Hard"
+    },
+    "hardNote": "Want gentler targets? You can change them in Goals.",
+    "openGoals": "Open Goals"
+  },
+  "reminders": {
+    "title": "Reminders",
+    "intro": "Gentle nudges, only if you want them. They're all off until you switch one on.",
+    "mealsTitle": "Meal times",
+    "mealsHint": "A meal's reminder is skipped when you've already logged that meal that day.",
+    "eveningTitle": "Evening",
+    "scansName": "Scanned packets waiting",
+    "scansHint": "Only on evenings when a packet you scanned still needs finishing (Pending lookups on Today).",
+    "summaryScans": "scanned packets",
+    "switchLabel": "{{name}} reminder",
+    "timeLabel": "{{name}} reminder time",
+    "full": "That's {{count}} a day, the most Kalorie sends. Switch one off to choose another.",
+    "blocked": "Notifications are turned off for Kalorie in your phone's settings.",
+    "channelName": "Reminders",
+    "meal": {
+      "breakfast": "Had breakfast? Tap to add it — takes 10 seconds.",
+      "lunch": "Had lunch? Tap to add it — takes 10 seconds.",
+      "snacks": "Had a snack? Tap to add it — takes 10 seconds.",
+      "dinner": "Had dinner? Tap to add it — takes 10 seconds.",
+      "custom": "{{meal}}: tap to add what you had — takes 10 seconds."
+    },
+    "scansTitle": "Scanned packets waiting",
+    "scansBody": "A packet you scanned still needs finishing. Tap to see it."
+  },
+  "export": {
+    "title": "Export CSV",
+    "intro": "Save what you've logged as spreadsheet files — to keep, or to show a doctor or dietitian. They open in Google Sheets, Excel and Numbers.",
+    "range": "Days",
+    "ranges": {
+      "week": "Last 7 days",
+      "month": "Last 30 days",
+      "quarter": "Last 90 days",
+      "all": "Everything",
+      "custom": "Pick dates"
+    },
+    "rangeLine": "{{from}} – {{to}}",
+    "from": "From",
+    "to": "To",
+    "pickFrom": "First day",
+    "pickTo": "Last day",
+    "filesTitle": "Files",
+    "files": {
+      "entries": {
+        "name": "Everything you logged",
+        "detail": "One row per food: day, time, meal, amount, grams, kcal, protein, carbs and fat."
+      },
+      "daily": {
+        "name": "Daily totals",
+        "detail": "One row per day: kcal, protein, carbs, fat, fibre, sugar, saturated fat, sodium, water, weight and your calorie target."
+      },
+      "weight": {
+        "name": "Weight",
+        "detail": "Each weigh-in with its trend."
+      },
+      "water": {
+        "name": "Water",
+        "detail": "Each glass, with the time."
+      }
+    },
+    "share": "Share",
+    "shareLabel": "Share {{name}}",
+    "preparing": "Getting the file ready…",
+    "problem": "The file couldn't be made. Please try again.",
+    "unavailable": "This phone can't open a share sheet, so the files can't be shared from here.",
+    "note": "The share sheet takes one file at a time. Empty cells mean the food data doesn't include that number — not zero."
+  },
+  "account": {
+    "title": "Account",
+    "intro": "An account is optional. Kalorie works exactly the same without one, and everything you log stays on this phone.",
+    "why": "For now, signing in saves only your email address. Backing up your log and moving it to a new phone come in a later update.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "sendCode": "Send me a code",
+    "sending": "Sending…",
+    "codeSent": "We sent a code to {{email}}. It can take a minute to arrive — check the spam folder too.",
+    "codeLabel": "Code from the email",
+    "signIn": "Sign in",
+    "checking": "Checking…",
+    "newCode": "Send a new code",
+    "newCodeSent": "A new code is on its way.",
+    "otherEmail": "Use a different email",
+    "signedInAs": "Signed in as",
+    "signedInNote": "Everything works the same as before. Backing up your log comes in a later update.",
+    "signOut": "Sign out",
+    "signedOut": "Signed out. Everything you logged is still on this phone.",
+    "deleteRow": "Delete my account and data",
+    "deleteHint": "Removes your account and everything kept online for it.",
+    "deleteTitle": "Delete your account?",
+    "deleteBody": "This deletes your account and everything Kalorie keeps online for it, straight away. It can't be undone.",
+    "deletePhone": "What is on this phone stays. You can keep using Kalorie without an account, or sign in again later as a new account.",
+    "deleteConfirm": "Delete my account",
+    "deleteKeep": "Keep my account",
+    "deleting": "Deleting…",
+    "deleted": "Your account and everything kept online for it are deleted. Your log is still on this phone.",
+    "notSetUp": "Accounts aren't switched on in this copy of Kalorie. Everything else works as usual.",
+    "privacyLink": "What we store, and where",
+    "problems": {
+      "emailEmpty": "Type your email address.",
+      "emailInvalid": "That doesn't look like an email address. Please check it.",
+      "codeShort": "Type the code from the email — it has at least 6 digits.",
+      "offline": "Couldn't reach the server. Check your internet and try again.",
+      "tooMany": "Too many tries for now. Please wait a minute and try again.",
+      "wrongCode": "That code didn't work. Check it, or send a new code.",
+      "badEmail": "That email address can't get codes. Please check it.",
+      "other": "Something went wrong. Please try again."
+    }
+  },
+  "privacy": {
+    "title": "Privacy",
+    "intro": "Kalorie is free and has no ads. This is what it keeps about you, in plain words.",
+    "sections": {
+      "phone": {
+        "title": "On your phone",
+        "body": "Everything you log — food, goals, weight, water, recipes, thalis and label photos — is saved on this phone. You don't need an account for any of it."
+      },
+      "account": {
+        "title": "If you sign in",
+        "body": "We keep your email address, so we can send you a sign-in code. Nothing else leaves your phone, except foods you choose to share with a group. When backup arrives in a later update, a copy of your log will be kept with your account too — this page will say so first."
+      },
+      "where": {
+        "title": "Where it is kept",
+        "body": "Accounts are kept by Supabase, on servers in Mumbai, India. Each account can open only its own data, and a group's foods can be seen only by the people in that group: the database itself checks this on every request."
+      },
+      "group": {
+        "title": "If you join a group",
+        "body": "The people in your group see the group's name, the name you give yourself in it, and the foods you choose to share: name, brand, barcode, nutrients and portion sizes. Your log, your weight, your goals and your label photos are never shared. When you leave, the foods you shared leave with you."
+      },
+      "sold": {
+        "title": "Never sold",
+        "body": "Your data is never sold, never shared with advertisers and never used for ads. There are no ads, and no tracking or analytics tools inside the app."
+      },
+      "barcode": {
+        "title": "Barcode lookups",
+        "body": "When you scan a packet, only its barcode number is sent to Open Food Facts to find the product. Nothing about you goes with it."
+      },
+      "delete": {
+        "title": "Deleting",
+        "body": "Profile → Account → Delete my account and data removes your account and everything kept online for it, at once. To remove what is on your phone, uninstall the app."
+      }
+    }
+  },
+  "group": {
+    "title": "My group",
+    "intro": "A group is a few people — family or friends — who share foods with each other: your recipes and the packets you scanned. Only people in the group can see them.",
+    "signInFirst": "Sign in first to start or join a group. Everything you log stays on this phone either way.",
+    "signIn": "Sign in",
+    "notSetUp": "Groups need an account, and accounts aren't switched on in this copy of Kalorie.",
+    "myNameLabel": "Your name in the group",
+    "myNamePlaceholder": "Asha",
+    "myNameHint": "Others see it next to the foods you share.",
+    "startTitle": "Start a group",
+    "groupNameLabel": "Group name",
+    "groupNamePlaceholder": "Sharma family",
+    "start": "Start group",
+    "starting": "Starting…",
+    "joinTitle": "Join a group",
+    "codeLabel": "Invite code",
+    "codePlaceholder": "K7M Q2P",
+    "join": "Join group",
+    "joining": "Joining…",
+    "inviteTitle": "Invite code",
+    "inviteHint": "Anyone with this code can join. Send it only to people you want in the group.",
+    "shareCode": "Send the code",
+    "shareMessage": "Join my group “{{group}}” on Kalorie: Profile → My group → Join a group, and type the code {{code}}",
+    "newCode": "Make a new code",
+    "newCodeDone": "New code made. The old one no longer works.",
+    "people": "People",
+    "you": "{{name}} (you)",
+    "yourFoods": "Shared by you",
+    "yourFoodsEmpty": "Nothing yet. Open one of your recipes or products and switch on Share with my group.",
+    "othersFoods": "Shared by others",
+    "othersFoodsEmpty": "Nothing yet. Foods others share show up here and in search.",
+    "sharedBy": "Shared by {{name}}",
+    "leave": "Leave group",
+    "leaveTitle": "Leave {{group}}?",
+    "leaveBody": "The foods you shared leave the group. Foods others shared leave your search, but days you logged them keep their numbers. You can join again with an invite code.",
+    "leaveConfirm": "Leave group",
+    "leaveKeep": "Stay in the group",
+    "leaving": "Leaving…",
+    "left": "You left the group.",
+    "unreachable": "Couldn't reach the server. Group foods already on this phone still work.",
+    "tryAgain": "Try again",
+    "problems": {
+      "nameEmpty": "Type your name for the group.",
+      "groupNameEmpty": "Type a name for the group.",
+      "codeInvalid": "An invite code has 6 letters and numbers, like K7M Q2P.",
+      "offline": "Couldn't reach the server. Check your internet and try again.",
+      "wrongCode": "No group has that code. Check it with the person who sent it.",
+      "alreadyInGroup": "You're already in a group. Leave it first to join another.",
+      "tooManyTries": "Too many codes tried. Please wait an hour and try again.",
+      "full": "That group is full: it has 50 people.",
+      "notInGroup": "You're not in a group any more.",
+      "other": "Something went wrong. Please try again."
+    },
+    "share": {
+      "switch": "Share with my group",
+      "hint": "Everyone in {{group}} can find it and log it. Only you can change it.",
+      "waiting": "It goes to the group next time you're online.",
+      "flagsTitle": "Flagged as wrong",
+      "flagLine": "{{name}}: {{reason}}",
+      "flagNote": "“{{note}}”",
+      "markFixed": "Mark as fixed",
+      "fixedHint": "Fix the food first — edit the recipe, or scan the packet again — then mark it as fixed."
+    },
+    "food": {
+      "sharedBy": "Shared by {{name}} in your group",
+      "sharedInGroup": "Shared in your group",
+      "onlySharer": "Only the person who shared it can change it.",
+      "flagged_one": "{{count}} person thinks something here is wrong.",
+      "flagged_other": "{{count}} people think something here is wrong.",
+      "flag": "Something looks wrong?",
+      "youFlagged": "You flagged this as wrong.",
+      "unflag": "Take back my flag"
+    },
+    "flag": {
+      "title": "What looks wrong?",
+      "reasonLabel": "What looks wrong",
+      "reasons": {
+        "kcal": "Calories",
+        "nutrients": "Other nutrients",
+        "name": "Name or brand",
+        "other": "Something else"
+      },
+      "noteLabel": "A note for {{name}} (optional)",
+      "notePlaceholder": "The packet says 120 kcal per 100 g",
+      "send": "Send",
+      "sending": "Sending…",
+      "cancel": "Cancel",
+      "sent": "Thanks. {{name}} will see it."
+    }
   }
 }

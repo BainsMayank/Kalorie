@@ -35,7 +35,7 @@ const SOURCES: Source[] = ['indb', 'ifct', 'usda_fnd', 'usda_sr'];
 /** Foods to check by hand against the source files: a mix of every source and conversion. */
 export const SPOT_CHECK_REFS = [
   'ifct:A015', // rice — kJ → kcal, g → mg
-  'ifct:C033', // spinach — β-carotene → vitamin A RAE
+  'ifct:C033', // spinach — β-carotene → vitamin A (÷ 6, ICMR-NIN)
   'ifct:T005', // groundnut oil — no energy in IFCT, estimated from fat
   'ifct:L002', // cow milk
   'indb:ASC096', // chapati — roti units

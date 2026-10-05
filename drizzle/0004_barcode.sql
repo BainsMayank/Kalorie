@@ -1,0 +1,80 @@
+CREATE TABLE `barcode_queue` (
+	`barcode` text PRIMARY KEY NOT NULL,
+	`scanned_at` integer NOT NULL,
+	`day` text NOT NULL,
+	`slot_id` text,
+	`status` text NOT NULL,
+	`custom_food_id` text,
+	`last_try_at` integer
+);
+--> statement-breakpoint
+CREATE TABLE `custom_food_units` (
+	`id` text PRIMARY KEY NOT NULL,
+	`custom_food_id` text NOT NULL,
+	`unit` text NOT NULL,
+	`label` text NOT NULL,
+	`grams` real NOT NULL,
+	`is_default` integer DEFAULT false NOT NULL,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
+	`deleted_at` integer
+);
+--> statement-breakpoint
+CREATE INDEX `custom_food_units_food_idx` ON `custom_food_units` (`custom_food_id`,`deleted_at`);--> statement-breakpoint
+CREATE TABLE `custom_foods` (
+	`id` text PRIMARY KEY NOT NULL,
+	`kind` text NOT NULL,
+	`name` text NOT NULL,
+	`brand` text,
+	`barcode` text,
+	`serving_g` real,
+	`density_g_per_ml` real DEFAULT 1 NOT NULL,
+	`cooked_with_fat` integer DEFAULT false NOT NULL,
+	`yield_g` real,
+	`servings` real,
+	`off_status` text,
+	`off_fetched_at` integer,
+	`label_photo_uri` text,
+	`shared_food_id` text,
+	`energy_kcal` real,
+	`protein_g` real,
+	`carb_g` real,
+	`fat_g` real,
+	`fibre_g` real,
+	`sugar_g` real,
+	`sat_fat_g` real,
+	`mufa_g` real,
+	`pufa_g` real,
+	`trans_fat_g` real,
+	`cholesterol_mg` real,
+	`sodium_mg` real,
+	`potassium_mg` real,
+	`calcium_mg` real,
+	`iron_mg` real,
+	`magnesium_mg` real,
+	`phosphorus_mg` real,
+	`zinc_mg` real,
+	`copper_mg` real,
+	`manganese_mg` real,
+	`selenium_ug` real,
+	`iodine_ug` real,
+	`vit_a_ug` real,
+	`thiamine_mg` real,
+	`riboflavin_mg` real,
+	`niacin_mg` real,
+	`pantothenic_mg` real,
+	`vit_b6_mg` real,
+	`biotin_ug` real,
+	`folate_ug` real,
+	`vit_b12_ug` real,
+	`vit_c_mg` real,
+	`vit_d_ug` real,
+	`vit_e_mg` real,
+	`vit_k_ug` real,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
+	`deleted_at` integer
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `custom_foods_barcode_unique` ON `custom_foods` (`barcode`);--> statement-breakpoint
+CREATE INDEX `custom_foods_kind_idx` ON `custom_foods` (`kind`,`deleted_at`);

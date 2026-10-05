@@ -1,4 +1,5 @@
 import { emptyNutrients } from './nutrients';
+import { recipeOilStep } from './oil';
 import {
   daySummary,
   entryNutrients,
@@ -103,6 +104,17 @@ describe('progress', () => {
     expect(progress(-5, 2000)).toMatchObject({ eaten: 0, left: 2000, fraction: 0 });
     expect(progress(0, 0)).toMatchObject({ fraction: 0, overFraction: 0, left: 0 });
     expect(progress(50, 0)).toMatchObject({ fraction: 1, over: 50, overFraction: 0 });
+  });
+
+  it('has nothing left or over without a target (Just track)', () => {
+    expect(progress(1800, null)).toEqual({
+      eaten: 1800,
+      target: null,
+      left: 0,
+      over: 0,
+      fraction: 0,
+      overFraction: 0,
+    });
   });
 });
 
@@ -269,5 +281,20 @@ describe('daySummary', () => {
       expect(macro.kcalShare).toBeNull();
       expect(macro.top).toEqual([]);
     }
+  });
+});
+
+describe('entryNutrients with oil', () => {
+  const dal = { ...emptyNutrients(), energy_kcal: 62, protein_g: 3.2, fat_g: 1.5 };
+  const noQuick = { quickKcal: null, quickProteinG: null, quickCarbG: null, quickFatG: null };
+  const step = recipeOilStep([{ grams: 10, nutrients: { energy_kcal: 900, fat_g: 100 } }], 600);
+
+  it('adds the oil step for More and takes it away for Less', () => {
+    const at = (oilLevel: number) =>
+      entryNutrients({ grams: 150, oilLevel, ...noQuick }, dal, step);
+    expect(at(0).energy_kcal).toBeCloseTo(93);
+    expect(at(1).energy_kcal).toBeCloseTo(104.25); // + 7.5 kcal per 100 g
+    expect(at(-1).energy_kcal).toBeCloseTo(81.75);
+    expect(at(1).protein_g).toBeCloseTo(at(0).protein_g!);
   });
 });

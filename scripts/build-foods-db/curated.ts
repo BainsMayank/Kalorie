@@ -7,7 +7,6 @@ import { join } from 'node:path';
 
 import { parse } from 'csv-parse/sync';
 
-import { NUTRIENT_KEYS, type NutrientKey } from '../../src/lib/nutrients';
 import { phoneticText } from '../../src/lib/search';
 import { UNIT_DEFAULTS } from '../../src/lib/units';
 import { type Rule, splitList, splitPhrases } from './rules';
@@ -177,36 +176,6 @@ export function loadCategoryOverrides(categories: Map<string, CategoryUnits>): M
   return result;
 }
 
-// --- rda_icmr_nin_2020.csv --------------------------------------------------------------
-
-export interface RdaRow {
-  nutrient: NutrientKey;
-  sex: 'm' | 'f';
-  rda: number | null;
-  tul: number | null;
-  per1000Kcal: number | null;
-  unit: string;
-}
-
-export function loadRda(): RdaRow[] {
-  const file = 'rda_icmr_nin_2020.csv';
-  const optional = (v: string, what: string) => (v === '' ? null : toNumber(file, v, what));
-  return curated(file).map((row) => {
-    if (!NUTRIENT_KEYS.includes(row.nutrient as NutrientKey)) {
-      fail(file, `unknown nutrient "${row.nutrient}"`);
-    }
-    if (row.sex !== 'm' && row.sex !== 'f') fail(file, `sex must be m or f, got "${row.sex}"`);
-    return {
-      nutrient: row.nutrient as NutrientKey,
-      sex: row.sex,
-      rda: optional(row.rda, 'rda'),
-      tul: optional(row.tul, 'tul'),
-      per1000Kcal: optional(row.per_1000_kcal, 'per_1000_kcal'),
-      unit: row.unit,
-    };
-  });
-}
-
 // --- indb_ingredients.csv ---------------------------------------------------------------
 
 /** Anuvaad ingredient code → "<source>:<code>" of a food in foods.db, or "zero" (water). */
@@ -276,4 +245,105 @@ export function loadServingOverrides(): Map<string, ServingOverride> {
     overrides.set(row.ref, { name: row.name, pieces, label: row.label });
   }
   return overrides;
+}
+
+// --- thalis.csv ---------------------------------------------------------------------------
+
+export interface ThaliItemRow {
+  ref: string;
+  name: string;
+  qty: number;
+  unit: string;
+}
+
+export interface ThaliTemplate {
+  name: string;
+  region: string;
+  items: ThaliItemRow[];
+}
+
+const REF = /^(indb|ifct|usda_fnd|usda_sr):\S+$/;
+const REGIONS = new Set(['north', 'south', 'east', 'west', 'any']);
+
+/** The built-in starter thalis, in file order; a thali's rows are its items in order. */
+export function loadThalis(): ThaliTemplate[] {
+  const file = 'thalis.csv';
+  const thalis = new Map<string, ThaliTemplate>();
+  for (const row of curated(file)) {
+    if (!row.thali) fail(file, 'thali name is required');
+    if (!REGIONS.has(row.region)) fail(file, `region "${row.region}" for ${row.thali} is unknown`);
+    if (!REF.test(row.ref)) fail(file, `ref "${row.ref}" should look like indb:ASC155`);
+    if (!row.name) fail(file, `name is required for ${row.ref}`);
+    if (!row.unit) fail(file, `unit is required for ${row.ref} in ${row.thali}`);
+    const qty = toNumber(file, row.qty, `qty for ${row.ref} in ${row.thali}`);
+    if (!(qty > 0)) fail(file, `qty for ${row.ref} in ${row.thali} must be more than 0`);
+    const thali = thalis.get(row.thali) ?? { name: row.thali, region: row.region, items: [] };
+    if (thali.region !== row.region) fail(file, `${row.thali} has more than one region`);
+    thali.items.push({ ref: row.ref, name: row.name, qty, unit: row.unit });
+    thalis.set(row.thali, thali);
+  }
+  return [...thalis.values()];
+}
+
+// --- slot_suggestions.csv -----------------------------------------------------------------
+
+export interface SlotStarter {
+  slot: string;
+  ref: string;
+  name: string;
+}
+
+const SLOTS = new Set(['breakfast', 'lunch', 'snacks', 'dinner']);
+
+/** Starter foods per meal slot, in file order. */
+export function loadSlotSuggestions(): SlotStarter[] {
+  const file = 'slot_suggestions.csv';
+  const seen = new Set<string>();
+  return curated(file).map((row) => {
+    if (!SLOTS.has(row.slot))
+      fail(file, `slot "${row.slot}" should be breakfast, lunch, snacks or dinner`);
+    if (!REF.test(row.ref)) fail(file, `ref "${row.ref}" should look like indb:ASC155`);
+    if (!row.name) fail(file, `name is required for ${row.ref}`);
+    const key = `${row.slot} ${row.ref}`;
+    if (seen.has(key)) fail(file, `${row.ref} is listed twice for ${row.slot}`);
+    seen.add(key);
+    return { slot: row.slot, ref: row.ref, name: row.name };
+  });
+}
+
+// --- common_foods.csv ---------------------------------------------------------------------
+
+export interface CommonFoodRow {
+  ref: string;
+  name: string;
+  qty: number;
+  unit: string;
+  /** Only for a food whose diet foods.db doesn't know. */
+  diet: 'veg' | 'egg' | 'nonveg' | null;
+}
+
+const DIETS = new Set(['veg', 'egg', 'nonveg']);
+
+/** Everyday foods with an everyday portion, for "foods rich in …" (SPEC §2.12), in file order. */
+export function loadCommonFoods(): CommonFoodRow[] {
+  const file = 'common_foods.csv';
+  const seen = new Set<string>();
+  return curated(file).map((row) => {
+    if (!REF.test(row.ref)) fail(file, `ref "${row.ref}" should look like indb:ASC155`);
+    if (!row.name) fail(file, `name is required for ${row.ref}`);
+    if (seen.has(row.ref)) fail(file, `${row.ref} is listed twice`);
+    seen.add(row.ref);
+    if (!row.unit) fail(file, `unit is required for ${row.ref}`);
+    const qty = toNumber(file, row.qty, `qty for ${row.ref}`);
+    if (!(qty > 0)) fail(file, `qty for ${row.ref} must be more than 0`);
+    if (row.diet && !DIETS.has(row.diet))
+      fail(file, `diet "${row.diet}" for ${row.ref} is unknown`);
+    return {
+      ref: row.ref,
+      name: row.name,
+      qty,
+      unit: row.unit,
+      diet: (row.diet || null) as CommonFoodRow['diet'],
+    };
+  });
 }

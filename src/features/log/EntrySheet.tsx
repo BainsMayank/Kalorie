@@ -10,12 +10,15 @@ import {
 } from '@/components';
 import type { FoodDetail } from '@/db/foods';
 import type { LogEntry } from '@/db/user/schema';
+import { OilLevelChips } from '@/features/foods/OilLevelChips';
 import { usePortion } from '@/features/foods/usePortion';
 import { formatDayName } from '@/i18n/dates';
 import { timeOnDay } from '@/lib/day';
 import { formatAmount } from '@/lib/format';
+import type { OilLevel } from '@/lib/oil';
 import { isFreeNumberUnit } from '@/lib/units';
 import { useLogStore } from '@/stores/log';
+import { useHideNumbers } from '@/stores/settings';
 import { useTheme } from '@/theme';
 
 import { SheetFooter, SlotAndTimeFields, useSaveAction, useSlotAndTime } from './entryForm';
@@ -53,6 +56,7 @@ export function EntrySheet(props: Props) {
   const editEntry = useLogStore((state) => state.editEntry);
   const removeEntry = useLogStore((state) => state.removeEntry);
   const today = useToday();
+  const hide = useHideNumbers();
 
   const editing = props.mode === 'edit' ? props.entry : null;
   const day = props.mode === 'edit' ? props.entry.day : props.day;
@@ -61,9 +65,12 @@ export function EntrySheet(props: Props) {
     food,
     props.mode === 'add'
       ? props.start
-      : food.units.some((u) => u.unit === props.entry.unit)
-        ? { unit: props.entry.unit!, qty: props.entry.qty ?? 1 }
-        : { unit: 'g', qty: Math.round(props.entry.grams ?? 0) }, // the unit is gone: show grams
+      : {
+          ...(food.units.some((u) => u.unit === props.entry.unit)
+            ? { unit: props.entry.unit!, qty: props.entry.qty ?? 1 }
+            : { unit: 'g', qty: Math.round(props.entry.grams ?? 0) }), // the unit is gone: grams
+          oilLevel: props.entry.oilLevel as OilLevel,
+        },
   );
   const form = useSlotAndTime(
     props.mode === 'edit' ? { entry: props.entry } : { slotId: props.slotId },
@@ -78,12 +85,14 @@ export function EntrySheet(props: Props) {
         qty: portion.qty,
         unit: portion.unit.unit,
         grams: portion.grams,
+        // Only dishes cooked with oil or ghee have the control; everything else stays normal.
+        oilLevel: food.oilStep ? portion.oilLevel : 0,
       };
       if (editing) {
         await editEntry(editing.id, amount);
       } else {
         await addEntry(
-          { ...amount, day, foodSource: 'base', foodId: String(food.id), name: food.name },
+          { ...amount, day, foodSource: food.foodSource, foodId: food.foodId, name: food.name },
           t('undo.logged', { name: food.name, slot: slotName(t, form.slot!) }),
         );
         loggedTick();
@@ -148,7 +157,7 @@ export function EntrySheet(props: Props) {
         freeNumber={isFreeNumberUnit(portion.unit.unit)}
         unitLabel={portion.unit.label}
       />
-      {portion.unit.unit !== 'g' && (
+      {portion.unit.unit !== 'g' && !hide && (
         <Text
           style={{
             color: colors.textSecondary,
@@ -160,6 +169,7 @@ export function EntrySheet(props: Props) {
           {t('food.grams', { grams: formatAmount(portion.grams) })}
         </Text>
       )}
+      {food.oilStep && <OilLevelChips value={portion.oilLevel} onChange={portion.setOilLevel} />}
       <PortionSummary nutrients={portion.nutrients} />
       <SlotAndTimeFields form={form} />
     </BottomSheet>

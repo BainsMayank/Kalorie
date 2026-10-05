@@ -1,0 +1,100 @@
+# Everyday Indian foods, each with an everyday portion (SPEC §2.12, §4.1 common_foods). The
+# Nutrients screen picks "foods rich in …" from this list: the 5 that give the most of a vitamin or
+# mineral in one portion. A short, hand-picked list keeps odd rows out (a 480 g bowl of soup, a
+# cake whose vitamin C comes from a data slip) and keeps the portions believable.
+# ref:  "<source>:<source_code>" of the food, as in search_pins.csv.
+# name: the food's name, checked by the build so a wrong ref is caught.
+# qty, unit: the portion — a unit the food offers, or g.
+# diet: only for a food whose diet foods.db doesn't know (veg, egg or nonveg).
+# INDB and IFCT have no vitamin B12 or iodine, so milk, curd, eggs and some meats and fish come from
+# USDA, which has them.
+ref,name,qty,unit,diet
+# Milk, curd, paneer, eggs
+usda_sr:172217,"Milk, whole, 3.25% milkfat, without added vitamin A and vitamin D",1,glass,
+usda_fnd:2259793,"Yogurt, plain, whole milk",1,katori,
+ifct:L003,Paneer,50,g,
+usda_sr:172225,"Milk, buttermilk, fluid, whole",1,glass,
+indb:ASC022,Lassi (salted),1,glass,
+usda_sr:173424,"Egg, whole, cooked, hard-boiled",1,piece,
+indb:BFP240,Egg curry,1,katori,
+# Dals and pulses
+indb:ASC155,Mixed dal,1,katori,
+indb:OSR142,Split bengal gram dal,1,katori,
+indb:BFP178,Green gram whole with baghar,1,katori,
+indb:ASC157,Whole masoor,1,katori,
+indb:ASC165,Kidney bean curry,1,katori,
+indb:ASC162,Chickpeas curry,1,katori,
+indb:ASC163,Lobia curry,1,katori,
+indb:ASC167,Sambar,1,katori,
+indb:ASC164,Soyabean curry,1,katori,
+indb:BFP172,Arhar with spinach,1,katori,
+indb:ASC259,Sprouted moong salad,1,katori,
+indb:OSR100,Gram flour chilla/cheela,2,piece,
+indb:ASC474,Dhokla,2,piece,
+# Rotis, rice and breakfasts
+indb:ASC096,Chapati/Roti,2,roti_m,
+indb:ASC113,Boiled rice,1,katori,
+indb:BFP144,Plain khitchdi,1,katori,
+indb:BFP044,Poha,1,katori,
+indb:ASC144,Idli,2,piece,
+indb:BFP148,Plain dosa,1,piece,
+indb:OSR104,Methi thepla,2,piece,
+indb:BFP110,Methi parantha/paratha,1,piece,
+ifct:A010,Ragi,50,g,
+ifct:A003,Bajra,50,g,
+ifct:A005,Jowar,50,g,
+# Vegetables and greens
+indb:ASC215,Spinach paneer,1,katori,
+indb:ASC217,Sarson ka saag,1,katori,
+indb:BFP269,Okra/Lady's fingers fry,1,katori,
+indb:ASC173,Cabbage and peas,1,katori,
+indb:ASC171,Potato cauliflower,1,katori,
+indb:ASC193,Pea curry,1,katori,
+indb:ASC178,Dry potato,1,katori,
+ifct:C033,Spinach,1,cup,
+ifct:C002,"Amaranth leaves, green",1,cup,
+ifct:C020,Fenugreek leaves,1,cup,
+ifct:C019,Drumstick leaves,1,cup,
+ifct:F002,"Carrot, orange",1,piece,
+ifct:F001,Beet root,1,piece,
+ifct:F014,"Sweet potato, pink skin",1,piece,
+ifct:D066,"Pumpkin, orange, round",1,katori,
+ifct:D076,"Tomato, ripe, local",1,piece,
+ifct:D061,"Peas, fresh",1,katori,
+ifct:J001,"Button mushroom, fresh",1,cup,
+# Fruit
+ifct:E028,"Guava, white flesh",1,piece,
+ifct:E021,Goosberry,50,g,
+ifct:E047,"Orange, pulp",1,piece,
+ifct:E049,"Papaya, ripe",1,katori,
+ifct:E036,"Mango, ripe, banganapalli",1,piece,
+ifct:E012,"Banana, ripe, robusta",1,piece,
+ifct:E001,"Apple, big",1,piece,
+ifct:E055,"Pomegranate, maroon seeds",1,katori,
+ifct:E045,"Musk melon, orange flesh",1,piece,
+ifct:E017,"Dates, dry, pale brown",3,piece,
+ifct:K002,Coconut Water,1,glass,
+# Nuts and seeds
+ifct:H001,Almond,10,piece,
+ifct:H021,Walnut,15,g,
+ifct:H012,Ground nut,30,g,
+ifct:H005,Cashew nut,10,piece,
+ifct:H011,"Gingelly seeds, white",1,tbsp,
+ifct:H014,Linseeds,1,tbsp,
+indb:ASC344,Sesame ladoo,1,piece,
+indb:ASC382,Peanut brittle,1,piece,
+# Chicken, mutton, fish
+indb:ASC240,Chicken curry,1,katori,
+usda_sr:171477,"Chicken, broilers or fryers, breast, meat only, cooked, roasted",100,g,
+usda_sr:175304,"Game meat, goat, cooked, roasted",100,g,
+usda_sr:172532,"Lamb, variety meats and by-products, liver, cooked, braised",50,g,
+usda_sr:171061,"Chicken, liver, all classes, cooked, simmered",50,g,
+indb:BFP194,Mutton korma,1,katori,
+indb:ASC246,Fish curry,1,katori,
+ifct:S006,Rohu,100,g,
+ifct:P071,Sardine,100,g,
+usda_sr:171994,"Fish, mackerel, Pacific and jack, mixed species, cooked, dry heat",100,g,
+indb:BFP230,Prawn curry (with coconut),1,katori,
+# Others
+ifct:I001,"Jaggery, cane",1,tbsp,
+usda_fnd:746775,"Salt, table, iodized",2,g,veg

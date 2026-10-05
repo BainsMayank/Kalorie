@@ -7,8 +7,6 @@
 /** The day starts at 4:00 am. */
 export const DAY_START_MIN = 4 * 60;
 
-const MIN_PER_DAY = 24 * 60;
-
 function pad(n: number): string {
   return String(n).padStart(2, '0');
 }
@@ -58,11 +56,6 @@ export function timeOnDay(day: string, minute: number): number {
   const { year, month, date } = parseDay(day);
   const nextDate = minute < DAY_START_MIN ? 1 : 0;
   return new Date(year, month - 1, date + nextDate, 0, minute).getTime();
-}
-
-/** Where a clock minute falls in a logical day: 4:00 am → 0, 3:59 am → 1439. */
-export function minuteOfLogicalDay(minute: number): number {
-  return (minute - DAY_START_MIN + MIN_PER_DAY) % MIN_PER_DAY;
 }
 
 /** The 24 hours of a logical day in order, as clock hours: 4, 5, … 23, 0, 1, 2, 3. */

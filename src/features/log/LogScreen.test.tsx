@@ -181,6 +181,44 @@ describe('Log tab', () => {
     expect(screen.queryByText('Mixed dal')).toBeNull();
     expect(within(slotCard('Lunch')).getByText('Nothing logged here yet.')).toBeOnTheScreen();
   });
+
+  it('brings a deleted entry back from Recently deleted', async () => {
+    await renderLog();
+    await act(async () => {}); // the deleted list loads after the day
+    // Both lunch entries were deleted above.
+    await fireEvent.press(screen.getByRole('button', { name: 'Recently deleted (2)' }));
+    expect(screen.getByRole('header', { name: 'Recently deleted' })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Bring back Mixed dal' }));
+    await act(async () => {});
+
+    // One item is left, so the sheet stays open; close it to see the day.
+    await fireEvent.press(screen.getByRole('button', { name: 'Close' }));
+    // It comes back as it was when deleted (2 katori, from the edit above).
+    expect(screen.getByRole('button', { name: /^Mixed dal, 2 katori/ })).toBeOnTheScreen();
+    expect((await listEntriesForDay(TODAY)).map((e) => e.name)).toEqual(['Mixed dal']);
+    expect(screen.getByRole('button', { name: 'Recently deleted (1)' })).toBeOnTheScreen();
+  });
+
+  it('lets an entry whose food is gone be deleted', async () => {
+    await insertEntry({
+      day: TODAY,
+      loggedAt: at(19, 0),
+      slotId: 'dinner',
+      foodSource: 'base',
+      foodId: '1',
+      name: 'Old food',
+      qty: 1,
+      unit: 'katori',
+      grams: 150,
+    });
+    await renderLog();
+    await fireEvent.press(screen.getByRole('button', { name: /^Old food/ }));
+    await act(async () => {});
+    expect(screen.getByText(/isn't in Kalorie any more/)).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Delete' }));
+    await act(async () => {});
+    expect(screen.queryByText('Old food')).toBeNull();
+  });
 });
 
 describe('Log tab — copy, Undo and quick adds', () => {

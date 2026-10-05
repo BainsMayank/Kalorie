@@ -1,4 +1,5 @@
 import {
+  countFoodUsesSince,
   deleteEntry,
   insertEntries,
   insertEntry,
@@ -159,5 +160,23 @@ describe('favourites', () => {
 
     await removeFavourite({ foodSource: 'base', foodId: '2' });
     expect((await listFavourites()).map((f) => f.foodId)).toEqual(['1']);
+  });
+});
+
+describe('countFoodUsesSince', () => {
+  it('counts each food logged from a day on, leaving out deleted entries and quick adds', async () => {
+    const day = '2030-01-10';
+    await insertEntry({ ...dal, day: '2030-01-09' }); // before the day: not counted
+    await insertEntry({ ...dal, day });
+    await insertEntry({ ...dal, day: '2030-01-11' });
+    const gone = await insertEntry({ ...dal, day });
+    await deleteEntry(gone.id);
+    await insertEntry({ ...dal, day, foodSource: 'custom', foodId: 'r-1', name: 'Rajma' });
+    await insertEntry({ ...dal, day, foodSource: 'quick', foodId: null, name: '' });
+
+    const uses = await countFoodUsesSince(day);
+    expect(uses.get('base:123')).toBe(2);
+    expect(uses.get('custom:r-1')).toBe(1);
+    expect(uses.size).toBe(2);
   });
 });

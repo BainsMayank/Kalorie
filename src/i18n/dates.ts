@@ -4,8 +4,8 @@ import type { TFunction } from 'i18next';
 
 import { parseDay, relativeDay, timeParts, weekday } from '@/lib/day';
 
-const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
-const MONTHS = [
+export const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
+export const MONTHS = [
   'jan',
   'feb',
   'mar',

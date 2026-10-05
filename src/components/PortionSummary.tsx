@@ -3,12 +3,15 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { formatAmount, formatKcal } from '@/lib/format';
 import type { NutrientValues } from '@/lib/nutrients';
+import { useHideNumbers } from '@/stores/settings';
 import { useTheme } from '@/theme';
 
-/** Big kcal number and protein / carbs / fat for a portion. */
+/** Big kcal number and protein / carbs / fat for a portion. Nothing with hide numbers on. */
 export function PortionSummary({ nutrients }: { nutrients: NutrientValues }) {
   const { t } = useTranslation();
   const { colors, spacing, fontSize } = useTheme();
+  const hide = useHideNumbers();
+  if (hide) return null;
   const unknown = t('food.unknown');
   const macros = [
     { key: 'protein', value: nutrients.protein_g, color: colors.protein },
@@ -21,7 +24,7 @@ export function PortionSummary({ nutrients }: { nutrients: NutrientValues }) {
       <Text style={{ color: colors.text, fontSize: fontSize.headline, fontWeight: '700' }}>
         {t('food.kcal', { value: formatKcal(nutrients.energy_kcal) ?? unknown })}
       </Text>
-      <View style={[styles.row, { marginTop: spacing.sm, gap: spacing.lg }]}>
+      <View style={[styles.row, styles.wrap, { marginTop: spacing.sm, gap: spacing.lg }]}>
         {macros.map((m) => (
           <View key={m.key} style={[styles.row, { gap: spacing.xs }]}>
             <View style={[styles.dot, { backgroundColor: m.color }]} />
@@ -43,5 +46,6 @@ export function PortionSummary({ nutrients }: { nutrients: NutrientValues }) {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
+  wrap: { flexWrap: 'wrap', justifyContent: 'center' },
   dot: { width: 8, height: 8, borderRadius: 4 },
 });

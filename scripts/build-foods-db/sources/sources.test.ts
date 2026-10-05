@@ -1,4 +1,4 @@
-import { ifctFood, isNumberedVariety, unanalysedColumns } from './ifct';
+import { fixIfctSlips, ifctFood, isNumberedVariety, unanalysedColumns } from './ifct';
 import {
   believableServing,
   fixedIndbServing,
@@ -14,6 +14,7 @@ import {
   recipeGrams,
 } from './indb-recipes';
 import { usdaNutrients, usdaPortionUnit } from './usda';
+import { emptyNutrients } from '../../../src/lib/nutrients';
 
 describe('INDB conversion', () => {
   // Hot tea (Garam Chai), values rounded from the real row ASC001.
@@ -48,10 +49,11 @@ describe('INDB conversion', () => {
     expect(food.nutrients.mufa_g).toBeCloseTo(0.1442);
   });
 
-  it('builds vitamin A RAE from retinol + carotenoids / 12, and adds D2+D3 and K1+K2', () => {
+  it('builds vitamin A from retinol + carotenoids / 6 (ICMR-NIN), and adds K1+K2', () => {
     const food = indbFood(tea);
-    expect(food.nutrients.vit_a_ug).toBeCloseTo(12);
-    expect(food.nutrients.vit_d_ug).toBeCloseTo(0.15);
+    expect(food.nutrients.vit_a_ug).toBeCloseTo(14);
+    // Added up from IFCT's plant vitamin D, which isn't believable (ifct.ts): unknown.
+    expect(food.nutrients.vit_d_ug).toBeNull();
     expect(food.nutrients.vit_k_ug).toBeCloseTo(0.2);
   });
 
@@ -144,7 +146,7 @@ describe('IFCT conversion', () => {
     expect(food.nutrients.iron_mg).toBeCloseTo(0.65);
     expect(food.nutrients.selenium_ug).toBeCloseTo(1);
     expect(food.nutrients.thiamine_mg).toBeCloseTo(0.05);
-    expect(food.nutrients.vit_a_ug).toBeCloseTo(1); // 12 µg β-carotene / 12
+    expect(food.nutrients.vit_a_ug).toBeCloseTo(2); // 12 µg β-carotene equivalents / 6
   });
 
   it('reads Hindi and regional names', () => {
@@ -157,6 +159,29 @@ describe('IFCT conversion', () => {
       ]),
     );
     expect(food.diet).toBe('veg');
+  });
+
+  it('fixes IFCT slips: fish B6 and biotin ÷ 1000, plant vitamin D unknown', () => {
+    const values = () => ({
+      ...emptyNutrients(),
+      vit_b6_mg: 240,
+      biotin_ug: 1263,
+      vit_d_ug: 109,
+    });
+    const fish = values();
+    fixIfctSlips(fish, {}, 'fish');
+    expect(fish.vit_b6_mg).toBeCloseTo(0.24);
+    expect(fish.biotin_ug).toBeCloseTo(1.263);
+    expect(fish.vit_d_ug).toBe(109);
+
+    const fruit = values();
+    fixIfctSlips(fruit, {}, 'fruit');
+    expect(fruit.vit_d_ug).toBeNull();
+    expect(fruit.vit_b6_mg).toBe(240); // only fish had the B6 slip
+
+    const mushroom = values();
+    fixIfctSlips(mushroom, {}, 'mushroom');
+    expect(mushroom.vit_d_ug).toBe(109); // D2 made in sunlight is real
   });
 
   it('estimates energy for oils (IFCT gives 0) and marks vitamins and minerals unknown', () => {
@@ -237,14 +262,16 @@ describe('USDA conversion', () => {
     expect(result.energyEstimated).toBe(true);
   });
 
-  it('computes vitamin A RAE from carotenoids when RAE is missing', () => {
+  it('computes vitamin A with ICMR-NIN factors from retinol and carotenoids', () => {
     const m = new Map([
       [1105, 10],
       [1107, 120],
       [1108, 24],
       [1120, 24],
     ]);
-    expect(usdaNutrients(m).nutrients.vit_a_ug).toBeCloseTo(10 + 10 + 2);
+    expect(usdaNutrients(m).nutrients.vit_a_ug).toBeCloseTo(10 + 20 + 4);
+    // With RAE listed too, the carotenoids still win: RAE uses USDA's 12:1.
+    expect(usdaNutrients(new Map([...m, [1106, 22]])).nutrients.vit_a_ug).toBeCloseTo(34);
   });
 
   it('maps household measures to unit keys', () => {

@@ -9,7 +9,7 @@ import {
   emptyNutrients,
   estimateEnergyKcal,
   sumKnown,
-  vitaminARaeUg,
+  vitaminAUg,
   type NutrientKey,
 } from '../../../src/lib/nutrients';
 import { USDA_EXCLUDED_CATEGORIES, usdaCategory, usdaDiet } from '../classify';
@@ -106,16 +106,18 @@ export function usdaNutrients(amounts: Amounts): {
   nutrients.sugar_g = sugar?.value ?? null;
   trace.sugar_g = sugar ? `#${sugar.id} ${sugar.value}` : '—';
 
-  if (amounts.has(ID.vitARae)) {
-    nutrients.vit_a_ug = get(ID.vitARae);
-    trace.vit_a_ug = `#${ID.vitARae} ${nutrients.vit_a_ug} RAE`;
-  } else {
-    nutrients.vit_a_ug = vitaminARaeUg({
+  // Vitamin A with ICMR-NIN's factors (β-carotene 6:1, α-carotene and β-cryptoxanthin 12:1,
+  // p. 10) when USDA lists retinol and β-carotene; else USDA's own RAE (12:1 / 24:1).
+  if (!amounts.has(ID.vitARae) || (amounts.has(ID.retinol) && amounts.has(ID.betaCarotene))) {
+    nutrients.vit_a_ug = vitaminAUg({
       retinolUg: get(ID.retinol),
       betaCaroteneUg: get(ID.betaCarotene),
       otherCarotenoidsUg: sumKnown(get(ID.alphaCarotene), get(ID.betaCryptoxanthin)),
     });
-    trace.vit_a_ug = 'retinol + β-carotene/12 + (α-carotene + β-cryptoxanthin)/24';
+    trace.vit_a_ug = 'retinol + β-carotene/6 + (α-carotene + β-cryptoxanthin)/12';
+  } else {
+    nutrients.vit_a_ug = get(ID.vitARae);
+    trace.vit_a_ug = `#${ID.vitARae} ${nutrients.vit_a_ug} RAE`;
   }
 
   nutrients.vit_k_ug = sumKnown(get(ID.vitK1), get(ID.vitK2Mk4));

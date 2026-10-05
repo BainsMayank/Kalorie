@@ -1,10 +1,11 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
+  Button,
   ChoiceChips,
   PortionSummary,
   QuantityStepper,
@@ -12,11 +13,18 @@ import {
   sourceKind,
 } from '@/components';
 import type { FoodDetail } from '@/db/foods';
+import { FoodSharingCard } from '@/features/group/FoodSharingCard';
 import { EntrySheet } from '@/features/log/EntrySheet';
 import { formatAmount, formatKcal, formatQty } from '@/lib/format';
-import { NUTRIENTS, type NutrientGroup, type NutrientValues } from '@/lib/nutrients';
+import {
+  NUTRIENTS,
+  completenessFlags,
+  type NutrientGroup,
+  type NutrientValues,
+} from '@/lib/nutrients';
 import { isFreeNumberUnit } from '@/lib/units';
 import { useLogStore } from '@/stores/log';
+import { useHideNumbers } from '@/stores/settings';
 import { useTheme } from '@/theme';
 
 import { FavouriteButton } from './FavouriteButton';
@@ -38,13 +46,27 @@ function formatNutrient(value: number | null, unit: NutrientUnit): string | null
   return unit === 'kcal' ? formatKcal(value) : formatAmount(value);
 }
 
+/**
+ * A food with its nutrients and a portion picker, then *Add to log* (SPEC §2.3, §2.4).
+ * Params: `id`; `source` = `custom` for a food in user.db (a barcode product); `slot` = the meal
+ * "+ Add" was tapped on; `day` = the day to log to, when it isn't the day on screen (a barcode
+ * scanned offline earlier); `log` = `1` opens the *Add to log* sheet at once (from Add food).
+ */
 export function FoodDetailScreen() {
   const { t } = useTranslation();
   const { colors, spacing, fontSize } = useTheme();
-  const { id, slot } = useLocalSearchParams<{ id: string; slot?: string }>();
-  const state = useFood(Number(id));
+  const { id, slot, source, day, log } = useLocalSearchParams<{
+    id: string;
+    slot?: string;
+    source?: string;
+    day?: string;
+    log?: string;
+  }>();
+  const state = useFood(source === 'custom' ? 'custom' : 'base', id);
 
-  if (state.status === 'found') return <FoodDetailView food={state.food} slotId={slot} />;
+  if (state.status === 'found') {
+    return <FoodDetailView food={state.food} slotId={slot} logDay={day} logNow={log === '1'} />;
+  }
   const message =
     state.status === 'missing'
       ? t('food.notFound')
@@ -60,12 +82,27 @@ export function FoodDetailScreen() {
   );
 }
 
-/** `slotId`: the meal slot the user tapped "+ Add" on, if any. */
-function FoodDetailView({ food, slotId }: { food: FoodDetail; slotId?: string }) {
+/** `slotId`: the meal slot the user tapped "+ Add" on, if any. `logNow`: open the sheet at once. */
+function FoodDetailView({
+  food,
+  slotId,
+  logDay,
+  logNow = false,
+}: {
+  food: FoodDetail;
+  slotId?: string;
+  logDay?: string;
+  logNow?: boolean;
+}) {
   const { t } = useTranslation();
   const router = useRouter();
   const { colors, spacing, fontSize, radius, minTapTarget } = useTheme();
-  const day = useLogStore((state) => state.day);
+  const shownDay = useLogStore((state) => state.day);
+  const day = logDay ?? shownDay;
+  const hide = useHideNumbers();
+  const flags = completenessFlags(food.nutrients);
+  // Most packet labels list only a few nutrients: say so, instead of leaving a table of dashes.
+  const incomplete = flags.complete_mineral === 0 || flags.complete_vitamin === 0;
   const {
     unit,
     qtyText,
@@ -76,7 +113,7 @@ function FoodDetailView({ food, slotId }: { food: FoodDetail; slotId?: string })
     pickUnit,
     step,
   } = usePortion(food);
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState(logNow);
 
   const portionLabel = t('food.portion', { qty: formatQty(qty), unit: unit.label });
 
@@ -98,19 +135,83 @@ function FoodDetailView({ food, slotId }: { food: FoodDetail; slotId?: string })
           >
             {food.name}
           </Text>
-          <FavouriteButton foodSource="base" foodId={String(food.id)} name={food.name} />
+          <FavouriteButton foodSource={food.foodSource} foodId={food.foodId} name={food.name} />
         </View>
-        {food.nameHi && (
+        {(food.nameHi ?? food.brand) && (
           <Text style={{ color: colors.textSecondary, fontSize: fontSize.body, marginTop: 2 }}>
-            {food.nameHi}
+            {food.nameHi ?? food.brand}
           </Text>
         )}
-        <View style={[styles.rowCenter, { marginTop: spacing.sm, gap: spacing.sm }]}>
-          <SourceBadge source={food.source} />
+        <View style={[styles.rowCenter, styles.wrap, { marginTop: spacing.sm, gap: spacing.sm }]}>
+          <SourceBadge source={food.sharing?.kind === 'group' ? 'group' : food.source} />
           <Text style={{ color: colors.textSecondary, fontSize: fontSize.caption }}>
-            {t(`sources.long.${sourceKind(food.source)}`)}
+            {food.offStatus === 'found'
+              ? t('product.fromOff')
+              : food.offStatus === 'user_added'
+                ? t('product.fromLabel')
+                : t(`sources.long.${sourceKind(food.source)}`)}
           </Text>
+          {incomplete && (
+            <Text
+              accessibilityHint={t('food.incompleteNote')}
+              style={{
+                color: colors.textSecondary,
+                fontSize: fontSize.caption,
+                borderColor: colors.border,
+                borderWidth: StyleSheet.hairlineWidth,
+                borderRadius: radius.sm,
+                paddingHorizontal: spacing.sm,
+                paddingVertical: 2,
+              }}
+            >
+              {t('food.incomplete')}
+            </Text>
+          )}
         </View>
+        {food.barcode && (
+          <Text
+            style={{
+              color: colors.textSecondary,
+              fontSize: fontSize.caption,
+              marginTop: spacing.xs,
+            }}
+          >
+            {t('product.barcode', { code: food.barcode })}
+          </Text>
+        )}
+        {/* Only the person's own recipes can be edited; a group's are changed by who shared it. */}
+        {food.source === 'recipe' && food.sharing?.kind !== 'group' && (
+          <View style={[styles.rowCenter, { marginTop: spacing.md, gap: spacing.sm }]}>
+            <View style={styles.flex}>
+              <Button
+                label={t('recipe.edit')}
+                kind="secondary"
+                onPress={() => router.push({ pathname: '/recipe', params: { id: food.foodId } })}
+              />
+            </View>
+            <View style={styles.flex}>
+              <Button
+                label={t('recipe.duplicate')}
+                kind="secondary"
+                onPress={() => router.push({ pathname: '/recipe', params: { copy: food.foodId } })}
+              />
+            </View>
+          </View>
+        )}
+        <FoodSharingCard food={food} />
+        {food.labelPhotoUri && (
+          <Image
+            source={{ uri: food.labelPhotoUri }}
+            accessibilityLabel={t('label.photoAlt')}
+            resizeMode="contain"
+            style={{
+              marginTop: spacing.md,
+              height: 180,
+              borderRadius: radius.md,
+              backgroundColor: colors.surfaceMuted,
+            }}
+          />
+        )}
 
         {/* Portion: unit chips and amount */}
         <View
@@ -138,7 +239,7 @@ function FoodDetailView({ food, slotId }: { food: FoodDetail; slotId?: string })
             freeNumber={isFreeNumberUnit(unit.unit)}
             unitLabel={unit.label}
           />
-          {unit.unit !== 'g' && (
+          {unit.unit !== 'g' && !hide && (
             <Text
               style={{
                 color: colors.textSecondary,
@@ -153,52 +254,68 @@ function FoodDetailView({ food, slotId }: { food: FoodDetail; slotId?: string })
           <PortionSummary nutrients={portion} />
         </View>
 
-        {/* Full nutrient table */}
-        <View style={[styles.rowCenter, { marginTop: spacing.xl, paddingHorizontal: spacing.xs }]}>
-          <View style={styles.flex} />
+        {/* Full nutrient table — or, with hide numbers on, a line saying where the numbers went */}
+        {hide ? (
           <Text
-            style={[
-              styles.valueColumn,
-              { color: colors.textSecondary, fontSize: fontSize.caption },
-            ]}
-            numberOfLines={2}
+            style={{ color: colors.textSecondary, fontSize: fontSize.body, marginTop: spacing.xl }}
           >
-            {portionLabel}
+            {t('food.numbersHidden')}
           </Text>
-          <Text
-            style={[
-              styles.valueColumn,
-              { color: colors.textSecondary, fontSize: fontSize.caption },
-            ]}
-          >
-            {t('food.per100g')}
-          </Text>
-        </View>
-        {SECTIONS.map((section) => (
-          <NutrientSection
-            key={section.title}
-            title={t(`food.groups.${section.title}`)}
-            groups={section.groups}
-            portion={portion}
-            per100g={food.nutrients}
-          />
-        ))}
+        ) : (
+          <>
+            <View
+              style={[styles.rowCenter, { marginTop: spacing.xl, paddingHorizontal: spacing.xs }]}
+            >
+              <View style={styles.flex} />
+              <Text
+                style={[
+                  styles.valueColumn,
+                  { color: colors.textSecondary, fontSize: fontSize.caption },
+                ]}
+                numberOfLines={2}
+              >
+                {portionLabel}
+              </Text>
+              <Text
+                style={[
+                  styles.valueColumn,
+                  { color: colors.textSecondary, fontSize: fontSize.caption },
+                ]}
+              >
+                {t('food.per100g')}
+              </Text>
+            </View>
+            {SECTIONS.map((section) => (
+              <NutrientSection
+                key={section.title}
+                title={t(`food.groups.${section.title}`)}
+                groups={section.groups}
+                portion={portion}
+                per100g={food.nutrients}
+              />
+            ))}
 
-        <Text
-          style={{ color: colors.textSecondary, fontSize: fontSize.caption, marginTop: spacing.lg }}
-        >
-          {t('food.unknownNote')}
-        </Text>
-        {food.energyEstimated && (
-          <Text
-            style={{
-              color: colors.textSecondary,
-              fontSize: fontSize.caption,
-              marginTop: spacing.xs,
-            }}
-          >
-            {t('food.energyEstimated')}
-          </Text>
+            <Text
+              style={{
+                color: colors.textSecondary,
+                fontSize: fontSize.caption,
+                marginTop: spacing.lg,
+              }}
+            >
+              {incomplete ? t('food.incompleteNote') : t('food.unknownNote')}
+            </Text>
+            {food.energyEstimated && (
+              <Text
+                style={{
+                  color: colors.textSecondary,
+                  fontSize: fontSize.caption,
+                  marginTop: spacing.xs,
+                }}
+              >
+                {t('food.energyEstimated')}
+              </Text>
+            )}
+          </>
         )}
       </ScrollView>
 
@@ -322,6 +439,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { alignItems: 'center', justifyContent: 'center' },
   rowCenter: { flexDirection: 'row', alignItems: 'center' },
+  wrap: { flexWrap: 'wrap' },
   card: { borderWidth: StyleSheet.hairlineWidth },
   valueColumn: { width: 96, textAlign: 'right' },
 });

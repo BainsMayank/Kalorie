@@ -10,13 +10,15 @@ import { normalizeText } from '../../src/lib/search';
 import {
   loadCategoryOverrides,
   loadCategoryUnits,
+  loadCommonFoods,
   loadDensityRules,
   loadDuplicateDecisions,
   loadIngredientMap,
-  loadRda,
   loadSearchPins,
   loadServingOverrides,
+  loadSlotSuggestions,
   loadSynonymGroups,
+  loadThalis,
   loadUnitRules,
 } from './curated';
 import { dedupe } from './dedupe';
@@ -31,7 +33,7 @@ import { readIndbRecipes } from './sources/indb-recipes';
 import { readUsda } from './sources/usda';
 import { searchText, synonymsFor } from './synonyms';
 import { type FoodRecord, SOURCE_RANK, refOf } from './types';
-import { type FoodRow, writeFoodsDb } from './write';
+import { type CommonFoodPortion, type FoodRow, type ThaliRow, writeFoodsDb } from './write';
 
 const ROOT = join(__dirname, '..', '..');
 const RAW = join(ROOT, 'data', 'raw');
@@ -146,27 +148,80 @@ function main(): void {
 
   const servings = fixIndbServings(rows, deduped.kept, recipeStats.servingScale, unitsFor);
 
-  const pins = loadSearchPins().flatMap((pin) => {
-    const row = rowByRef.get(pin.ref) ?? rowByRef.get(keptRefOf.get(pin.ref) ?? '');
-    if (!row) throw new Error(`data/curated/search_pins.csv: no food ${pin.ref} (${pin.name})`);
-    if (row.name !== pin.name) {
-      throw new Error(
-        `data/curated/search_pins.csv: ${pin.ref} is "${row.name}", not "${pin.name}"`,
-      );
+  /** The food for a curated ref, checked against the name the file gives. */
+  const curatedFood = (file: string, ref: string, name: string): FoodRow => {
+    const row = rowByRef.get(ref) ?? rowByRef.get(keptRefOf.get(ref) ?? '');
+    if (!row) throw new Error(`data/curated/${file}: no food ${ref} (${name})`);
+    if (row.name !== name) {
+      throw new Error(`data/curated/${file}: ${ref} is "${row.name}", not "${name}"`);
     }
+    return row;
+  };
+
+  const pins = loadSearchPins().flatMap((pin) => {
+    const row = curatedFood('search_pins.csv', pin.ref, pin.name);
     return pin.terms.map((term) => ({ term, foodId: row.id }));
   });
 
-  writeFoodsDb(OUTPUT, rows, loadRda(), pins, {
-    db_version: String(DB_VERSION),
-    built_at: new Date().toISOString(),
-    indb_version: INPUTS.indb.version,
-    indb_recipes_version: INPUTS.indbRecipes.version,
-    ifct_version: INPUTS.ifct.version,
-    usda_fnd_version: INPUTS.usdaFnd.version,
-    usda_sr_version: INPUTS.usdaSr.version,
-    food_count: String(rows.length),
+  const thalis: ThaliRow[] = loadThalis().map((thali) => ({
+    name: thali.name,
+    region: thali.region,
+    items: thali.items.map((item) => {
+      const row = curatedFood('thalis.csv', item.ref, item.name);
+      if (item.unit !== 'g' && !row.units.some((u) => u.unit === item.unit)) {
+        throw new Error(
+          `data/curated/thalis.csv: ${item.name} has no "${item.unit}" unit ` +
+            `(it has ${row.units.map((u) => u.unit).join(', ')}, g)`,
+        );
+      }
+      return { foodId: row.id, qty: item.qty, unit: item.unit };
+    }),
+  }));
+
+  const slotStarters = loadSlotSuggestions().map((starter) => ({
+    slot: starter.slot,
+    foodId: curatedFood('slot_suggestions.csv', starter.ref, starter.name).id,
+  }));
+
+  const commonFoods: CommonFoodPortion[] = loadCommonFoods().map((common) => {
+    const row = curatedFood('common_foods.csv', common.ref, common.name);
+    const unit = row.units.find((u) => u.unit === common.unit);
+    if (common.unit !== 'g' && !unit) {
+      throw new Error(
+        `data/curated/common_foods.csv: ${common.name} has no "${common.unit}" unit ` +
+          `(it has ${row.units.map((u) => u.unit).join(', ')}, g)`,
+      );
+    }
+    const diet = row.diet ?? common.diet;
+    if (!diet) {
+      throw new Error(
+        `data/curated/common_foods.csv: foods.db doesn't know if ${common.name} is veg; add a diet`,
+      );
+    }
+    return {
+      foodId: row.id,
+      qty: common.qty,
+      unit: common.unit,
+      grams: common.qty * (unit?.grams ?? 1),
+      diet,
+    };
   });
+
+  writeFoodsDb(
+    OUTPUT,
+    rows,
+    { pins, thalis, slotStarters, commonFoods },
+    {
+      db_version: String(DB_VERSION),
+      built_at: new Date().toISOString(),
+      indb_version: INPUTS.indb.version,
+      indb_recipes_version: INPUTS.indbRecipes.version,
+      ifct_version: INPUTS.ifct.version,
+      usda_fnd_version: INPUTS.usdaFnd.version,
+      usda_sr_version: INPUTS.usdaSr.version,
+      food_count: String(rows.length),
+    },
+  );
 
   printReport({
     read: [

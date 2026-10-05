@@ -1,17 +1,23 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshControl, ScrollView, StyleSheet, Text } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { UndoBar } from '@/components';
-import type { LogEntry, MealSlot } from '@/db/user/schema';
-import { CopySheet } from '@/features/log/CopySheet';
+import { AlertCard } from '@/features/alerts/AlertCard';
+import { useLimitAlerts } from '@/features/alerts/useLimitAlerts';
+import { PendingScansCard } from '@/features/barcode/PendingScansCard';
+import { StreakLine } from '@/features/habits/StreakLine';
+import { WeeklyCheckinCard } from '@/features/habits/WeeklyCheckinCard';
 import { DayTimeline } from '@/features/log/DayTimeline';
-import { EditEntrySheet } from '@/features/log/EditEntrySheet';
-import { entryName } from '@/features/log/names';
-import { useDayLog, type EntryView } from '@/features/log/useDayLog';
+import { useDaySheets } from '@/features/log/useDaySheets';
 import { useToday } from '@/features/log/useToday';
-import { daySummary } from '@/lib/nutrition';
+import { NutrientsLink } from '@/features/nutrients/NutrientsLink';
+import { WaterRow } from '@/features/water/WaterRow';
+import { suggestTargets } from '@/lib/targets';
+import { useBarcodeQueueStore } from '@/stores/barcodeQueue';
+import { bodyProfile, useGoalsStore } from '@/stores/goals';
 import { useLogStore } from '@/stores/log';
 import { useTheme } from '@/theme';
 
@@ -20,25 +26,29 @@ import { DayHeader } from './DayHeader';
 import { EmptyDay } from './EmptyDay';
 import { MacroSection } from './MacroSection';
 import { TopContributors } from './TopContributors';
-import { useDayTargets } from './useDayTargets';
-
-const NO_ENTRIES: EntryView[] = [];
+import { useDaySummary } from './useDaySummary';
 
 /**
- * The Today tab (SPEC §2.2), top to bottom: the day with ‹ ›, the calorie ring, the macro pie
- * with grams vs target, the top foods for each macro, and the meals. Pull down to read again.
+ * The Today tab (SPEC §2.2), top to bottom: the day with ‹ › and a small streak line, the
+ * calorie ring, notice cards (limits, the weekly check-in, pending scans), the macro pie with grams
+ * vs target, the top foods for each macro, water, and the meals. Pull down to read again.
  * It shows the same day as the Log tab, so "+ Add" always goes to the day on screen.
  */
 export function TodayScreen() {
   const { t } = useTranslation();
-  const { colors, spacing, fontSize } = useTheme();
+  const { colors, spacing, fontSize, minTapTarget } = useTheme();
   const day = useLogStore((state) => state.day);
   const setDay = useLogStore((state) => state.setDay);
   const today = useToday();
-  const log = useDayLog(day);
-  const { targets, isPlaceholder } = useDayTargets(day);
-  const [editing, setEditing] = useState<LogEntry | null>(null);
-  const [copying, setCopying] = useState<{ slot: MealSlot; entries: LogEntry[] } | null>(null);
+  const { log, entries, targets, summary } = useDaySummary(day);
+  const router = useRouter();
+  // No calorie target because age, height or weight were skipped: say where to add them.
+  const missingBody = useGoalsStore(
+    (state) =>
+      state.profile?.goal !== 'track' &&
+      suggestTargets(bodyProfile(state.profile, state.weightKg)).noKcalReason === 'missing',
+  );
+  const sheets = useDaySheets(day);
   const [scrollEnabled, setScrollEnabled] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -50,26 +60,19 @@ export function TodayScreen() {
     lastToday.current = today;
   }, [today, setDay]);
 
-  const entries = log.status === 'ready' ? log.entries : NO_ENTRIES;
-  const summary = useMemo(
-    () =>
-      daySummary(
-        entries.map((view) => ({
-          entryId: view.entry.id,
-          foodSource: view.entry.foodSource,
-          foodId: view.entry.foodId,
-          name: entryName(t, view.entry),
-          nutrients: view.nutrients,
-        })),
-        targets,
-      ),
-    [entries, targets, t],
-  );
+  const limitAlerts = useLimitAlerts(day, day === today, summary.totals, targets);
 
   const refresh = async () => {
     setRefreshing(true);
     try {
-      await Promise.all([useLogStore.getState().load(), log.reload()]);
+      await Promise.all([
+        useLogStore.getState().load(),
+        log.reload(),
+        useBarcodeQueueStore
+          .getState()
+          .retry()
+          .catch(() => {}),
+      ]);
     } finally {
       setRefreshing(false);
     }
@@ -77,7 +80,7 @@ export function TodayScreen() {
 
   const openEntry = (entryId: string) => {
     const view = entries.find((e) => e.entry.id === entryId);
-    if (view) setEditing(view.entry);
+    if (view) sheets.edit(view.entry);
   };
 
   const sectionTitle = (text: string) => (
@@ -107,6 +110,7 @@ export function TodayScreen() {
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: 96, gap: spacing.lg }}
       >
         <DayHeader day={day} today={today} onChange={setDay} />
+        {day === today && <StreakLine today={today} />}
 
         {log.status === 'error' && (
           <Text style={{ color: colors.textSecondary, fontSize: fontSize.body }}>
@@ -116,30 +120,46 @@ export function TodayScreen() {
 
         {log.status === 'ready' && (
           <>
-            <CalorieRing kcal={summary.kcal} />
-            {isPlaceholder && (
-              <Text
-                style={{
-                  color: colors.textSecondary,
-                  fontSize: fontSize.caption,
-                  textAlign: 'center',
-                }}
+            <CalorieRing kcal={summary.kcal} entryCount={entries.length} />
+            {targets?.kcal == null && missingBody && (
+              <Pressable
+                accessibilityRole="link"
+                onPress={() => router.push('/goals')}
+                style={{ minHeight: minTapTarget, justifyContent: 'center' }}
               >
-                {t('today.placeholderTargets')}
-              </Text>
+                <Text
+                  style={{
+                    color: colors.textSecondary,
+                    fontSize: fontSize.caption,
+                    textAlign: 'center',
+                    textDecorationLine: 'underline',
+                  }}
+                >
+                  {t('today.addBodyForTarget')}
+                </Text>
+              </Pressable>
             )}
+            <AlertCard alerts={limitAlerts.alerts} onDismiss={() => void limitAlerts.dismiss()} />
+            {day === today && <WeeklyCheckinCard today={today} />}
+            {day === today && <PendingScansCard />}
 
             {summary.isEmpty ? (
-              <EmptyDay isToday={day === today} />
+              <>
+                <EmptyDay isToday={day === today} />
+                <WaterRow day={day} />
+              </>
             ) : (
               <>
                 <MacroSection macros={summary.macros} />
                 <TopContributors macros={summary.macros} onOpenEntry={openEntry} />
+                <NutrientsLink day={day} period="day" />
+                <WaterRow day={day} />
                 {sectionTitle(t('today.mealsTitle'))}
                 <DayTimeline
                   entries={entries}
-                  onEdit={setEditing}
-                  onCopy={(slot, slotEntries) => setCopying({ slot, entries: slotEntries })}
+                  onEdit={sheets.edit}
+                  onCopy={(slot, slotEntries) => sheets.copy(slotEntries, slot)}
+                  onSaveThali={sheets.saveThali}
                   onSwipeChange={(swiping) => setScrollEnabled(!swiping)}
                 />
               </>
@@ -149,15 +169,7 @@ export function TodayScreen() {
       </ScrollView>
 
       <UndoBar placement="tabs" />
-      {editing && <EditEntrySheet entry={editing} onClose={() => setEditing(null)} />}
-      {copying && (
-        <CopySheet
-          entries={copying.entries}
-          slot={copying.slot}
-          fromDay={day}
-          onClose={() => setCopying(null)}
-        />
-      )}
+      {sheets.sheets}
     </SafeAreaView>
   );
 }

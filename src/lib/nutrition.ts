@@ -2,6 +2,7 @@
 // always worked out from its grams, never stored — and so are the totals of a meal or a day.
 
 import { NUTRIENT_KEYS, emptyNutrients, type NutrientKey, type NutrientValues } from './nutrients';
+import { withOilLevel, type OilStep } from './oil';
 
 /** Nutrients in `grams` of a food: grams / 100 × the per-100 g value. Unknown stays unknown. */
 export function nutrientsForGrams(per100g: NutrientValues, grams: number): NutrientValues {
@@ -21,16 +22,29 @@ export interface EntryAmount {
   quickProteinG: number | null;
   quickCarbG: number | null;
   quickFatG: number | null;
+  /** Oil / ghee: −1 less, 0 normal, +1 more (SPEC §5.5). Missing = normal. */
+  oilLevel?: number;
 }
 
 /**
- * Nutrients of one log entry (SPEC §5.3): grams / 100 × the food's per-100 g values.
+ * Nutrients of one log entry (SPEC §5.3): grams / 100 × the food's per-100 g values, plus or
+ * minus the oil step when the entry was logged with less or more oil (SPEC §5.5).
  * A quick add has only the kcal / protein / carbs / fat that were typed in; everything else is
  * unknown. So is every nutrient when the food can't be found (`per100g` = null).
  */
-export function entryNutrients(entry: EntryAmount, per100g: NutrientValues | null): NutrientValues {
+export function entryNutrients(
+  entry: EntryAmount,
+  per100g: NutrientValues | null,
+  oilStep: OilStep | null = null,
+): NutrientValues {
   if (entry.grams !== null) {
-    return per100g ? nutrientsForGrams(per100g, entry.grams) : emptyNutrients();
+    if (!per100g) return emptyNutrients();
+    return withOilLevel(
+      nutrientsForGrams(per100g, entry.grams),
+      oilStep,
+      entry.grams,
+      entry.oilLevel ?? 0,
+    );
   }
   return {
     ...emptyNutrients(),
@@ -58,12 +72,12 @@ export function sumNutrients(list: readonly NutrientValues[]): NutrientValues {
 
 // --- The day at a glance (Today screen, SPEC §2.2) ------------------------------------------
 
-/** A day's targets. Until goals exist (Stage 5) they come from `placeholderTargets.ts`. */
+/** A day's targets (the `targets` row in effect that day). `null` = no target (Just track). */
 export interface DayTargets {
-  kcal: number;
-  protein_g: number;
-  carb_g: number;
-  fat_g: number;
+  kcal: number | null;
+  protein_g: number | null;
+  carb_g: number | null;
+  fat_g: number | null;
 }
 
 export type MacroKey = 'protein' | 'carbs' | 'fat';
@@ -78,7 +92,8 @@ export const MACROS = [
 /** How far along a target is. Nothing is ever negative. */
 export interface Progress {
   eaten: number;
-  target: number;
+  /** `null` when there is no target (Just track): nothing is left or over, and nothing fills. */
+  target: number | null;
   /** What is still left of the target; 0 once it is reached. */
   left: number;
   /** How much more than planned; 0 until the target is passed. */
@@ -89,9 +104,15 @@ export interface Progress {
   overFraction: number;
 }
 
-/** Eaten vs target. A target of 0 or less counts as reached as soon as anything is eaten. */
-export function progress(eaten: number, target: number): Progress {
+/**
+ * Eaten vs target. A target of 0 or less counts as reached as soon as anything is eaten; no target
+ * at all (`null`) is never reached.
+ */
+export function progress(eaten: number, target: number | null): Progress {
   const e = Math.max(0, eaten);
+  if (target === null) {
+    return { eaten: e, target: null, left: 0, over: 0, fraction: 0, overFraction: 0 };
+  }
   const t = Math.max(0, target);
   const over = Math.max(0, e - t);
   if (t === 0) {

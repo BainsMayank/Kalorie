@@ -203,7 +203,7 @@ export interface RankCandidate {
   id: number;
   name: string;
   nameHi: string | null;
-  /** Source priority: 1 INDB, 2 IFCT, 3 USDA (0 will be the user's own foods). */
+  /** Source priority: 1 INDB, 2 IFCT, 3 USDA (the person's own foods rank as 0, SPEC §5.1). */
   searchRank: number;
   /** True if the name starts with its main word, then a comma (IFCT, USDA): see `foodAliases`. */
   headFirst: boolean;
@@ -216,6 +216,8 @@ export interface RankedFood<T extends RankCandidate> {
   tier: number;
   /** Words in the best-matching name that the query did not ask for. */
   extraWords: number;
+  /** Times logged in the last 30 days. */
+  uses: number;
 }
 
 /** The tier of one food for the query words, and how many extra words its best name has. */
@@ -248,11 +250,11 @@ export function matchFood(
 }
 
 /**
- * Sorts search candidates (SPEC §5.1 step 4): match tier → source (Indian foods before USDA) →
- * fewer extra words → shorter name. `pinnedIds` go first. `typoIds` were found only after
- * correcting a typo: they are matched against each corrected query in `typoQueries` and come
- * after everything found without a correction.
- * Personal use ("logged recently first") is added in Stage 3, when there are log entries.
+ * Sorts search candidates (SPEC §5.1 step 4): match tier → personal use (foods logged in the last
+ * 30 days first, most often first) → source (Indian foods before USDA) → fewer extra words →
+ * shorter name. `pinnedIds` go first. `typoIds` were found only after correcting a typo: they
+ * are matched against each corrected query in `typoQueries` and come after everything found
+ * without a correction. `uses` = food id → times logged in the last 30 days.
  */
 export function rankFoods<T extends RankCandidate>(
   candidates: readonly T[],
@@ -261,9 +263,10 @@ export function rankFoods<T extends RankCandidate>(
     pinnedIds?: ReadonlySet<number>;
     typoIds?: ReadonlySet<number>;
     typoQueries?: readonly (readonly string[])[];
+    uses?: ReadonlyMap<number, number>;
   } = {},
 ): RankedFood<T>[] {
-  const { pinnedIds, typoIds, typoQueries = [] } = options;
+  const { pinnedIds, typoIds, typoQueries = [], uses } = options;
   const ranked = candidates.map((food) => {
     const isTypo = typoIds?.has(food.id) ?? false;
     let match = matchFood(words, food);
@@ -278,16 +281,65 @@ export function rankFoods<T extends RankCandidate>(
     let tier: number = match.tier;
     if (pinnedIds?.has(food.id)) tier = MatchTier.pinned;
     else if (isTypo) tier += TYPO_TIER_OFFSET;
-    return { food, tier, extraWords: match.extraWords };
+    return { food, tier, extraWords: match.extraWords, uses: uses?.get(food.id) ?? 0 };
   });
   return ranked.sort(
     (a, b) =>
       a.tier - b.tier ||
+      b.uses - a.uses ||
       a.food.searchRank - b.food.searchRank ||
       a.extraWords - b.extraWords ||
       a.food.name.length - b.food.name.length ||
       a.food.name.localeCompare(b.food.name),
   );
+}
+
+/**
+ * How a food kept in user.db (a recipe, a scanned product) matches the query, or `null` if it
+ * doesn't. Like the search index, every query word must begin a word of its name or brand, as
+ * typed or by sound; the tier is then worked out as for any food (`matchFood`).
+ */
+export function customFoodMatch(
+  words: readonly string[],
+  name: string,
+  brand: string | null,
+): { tier: MatchTierValue; extraWords: number } | null {
+  if (words.length === 0) return null;
+  // People's own names often have an apostrophe: "Mom's rajma" is found by "moms" and "mom's".
+  const full = brand ? `${name} ${brand}` : name;
+  const joined = (text: string) => text.replace(/['’]/g, '');
+  const text = `${normalizeText(full)} ${normalizeText(joined(full))}`;
+  const own = toWords(text);
+  const found = words.every((w) => {
+    const query = { text: w, key: phoneticKey(w) };
+    return own.some((word) => beginsWord(query, word));
+  });
+  return found
+    ? matchFood(words, { name: joined(name), nameHi: null, headFirst: false, searchText: text })
+    : null;
+}
+
+/**
+ * Puts two ranked lists together by match tier, then personal use (times logged in the last 30
+ * days, most first), keeping each list's own order. On a tie `first` goes first — the person's
+ * own foods before the food databases (SPEC §5.1: source custom 0).
+ */
+export function mergeByTier<T extends { tier: number; uses: number }>(
+  first: readonly T[],
+  second: readonly T[],
+): T[] {
+  const firstGoesFirst = (a: T, b: T) => a.tier < b.tier || (a.tier === b.tier && a.uses >= b.uses);
+  const result: T[] = [];
+  let i = 0;
+  let j = 0;
+  while (i < first.length || j < second.length) {
+    if (j >= second.length || (i < first.length && firstGoesFirst(first[i], second[j]))) {
+      result.push(first[i++]);
+    } else {
+      result.push(second[j++]);
+    }
+  }
+  return result;
 }
 
 // --- Typos ---------------------------------------------------------------------------------

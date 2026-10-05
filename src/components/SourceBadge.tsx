@@ -3,15 +3,28 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { useTheme } from '@/theme';
 
-/** Where a food's data comes from. Both USDA datasets show as "USDA". */
-export type SourceKind = 'indb' | 'ifct' | 'usda';
+/**
+ * Where a food's data comes from. Both USDA datasets show as "USDA"; foods in user.db show
+ * their kind (barcode product, the person's own food, recipe), or "Group" when someone in the
+ * person's group shared it.
+ */
+export type SourceKind = 'indb' | 'ifct' | 'usda' | 'product' | 'custom' | 'recipe' | 'group';
 
 export function sourceKind(source: string): SourceKind {
-  if (source === 'indb' || source === 'ifct') return source;
-  return 'usda';
+  switch (source) {
+    case 'indb':
+    case 'ifct':
+    case 'product':
+    case 'custom':
+    case 'recipe':
+    case 'group':
+      return source;
+    default:
+      return 'usda';
+  }
 }
 
-/** A small grey tag with the data source (INDB / IFCT / USDA), SPEC §2.3. */
+/** A small grey tag with the data source (INDB / IFCT / USDA / Product / My food / Group), SPEC §2.3. */
 export function SourceBadge({ source }: { source: string }) {
   const { t } = useTranslation();
   const { colors, radius, spacing } = useTheme();

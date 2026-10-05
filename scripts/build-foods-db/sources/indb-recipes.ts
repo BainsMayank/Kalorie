@@ -6,8 +6,6 @@ import { readFileSync } from 'node:fs';
 
 import * as XLSX from 'xlsx';
 
-import { normalizeText } from '../../../src/lib/search';
-
 export interface RawIngredient {
   recipeCode: string;
   position: number;
@@ -96,19 +94,11 @@ export function categoryFromCode(code: string): string {
   return CODE_GROUP_CATEGORY[code.charAt(0)] ?? 'misc';
 }
 
-const FAT_WORDS = /\b(oil|oils|ghee|butter|vanaspati|margarine|dalda)\b/;
-const NOT_FAT_WORDS =
-  /\b(peanut butter|butter ?milk|cocoa butter|butter beans|almond butter|oil seeds?)\b/;
-
 /**
- * Is this ingredient a cooking fat (oil, ghee, butter, vanaspati, margarine)? These are what the
- * Less / Normal / More oil control scales (SPEC §5.5).
+ * Is this ingredient a cooking fat (oil, ghee, butter, vanaspati, margarine)? Shared with the
+ * app's recipe builder, so INDB dishes and the person's own recipes flag fats the same way.
  */
-export function isFatIngredient(name: string, category: string): boolean {
-  const text = normalizeText(name);
-  if (NOT_FAT_WORDS.test(text)) return false;
-  return category === 'oil_fat' || FAT_WORDS.test(text);
-}
+export { isFatIngredient } from '../../../src/lib/recipe';
 
 /**
  * Energy check for one dish: kcal of its ingredients ÷ (dish kcal per 100 g × recipe weight / 100).

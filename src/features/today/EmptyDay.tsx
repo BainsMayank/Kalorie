@@ -1,15 +1,19 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { PillButton } from '@/components';
 import { useTheme } from '@/theme';
 
-/** Shown on Today for a day with no entries: a friendly word and one button to start. */
-export function EmptyDay({ isToday }: { isToday: boolean }) {
+/**
+ * Shown on Today for a day with no entries: a friendly word and one button to start. Read-only
+ * (a past day opened from the calendar): just the word.
+ */
+export function EmptyDay({ isToday, readOnly = false }: { isToday: boolean; readOnly?: boolean }) {
   const { t } = useTranslation();
   const router = useRouter();
-  const { colors, spacing, fontSize, radius, minTapTarget } = useTheme();
+  const { colors, spacing, fontSize, radius } = useTheme();
 
   return (
     <View
@@ -39,34 +43,24 @@ export function EmptyDay({ isToday }: { isToday: boolean }) {
           lineHeight: 22,
         }}
       >
-        {isToday ? t('today.empty.today') : t('today.empty.otherDay')}
+        {readOnly
+          ? t('history.emptyDay')
+          : isToday
+            ? t('today.empty.today')
+            : t('today.empty.otherDay')}
       </Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('today.empty.add')}
-        onPress={() => router.push('/add')}
-        style={({ pressed }) => [
-          styles.button,
-          {
-            minHeight: minTapTarget,
-            paddingHorizontal: spacing.xl,
-            gap: spacing.xs,
-            borderRadius: radius.lg * 2,
-            backgroundColor: colors.text,
-            opacity: pressed ? 0.8 : 1,
-          },
-        ]}
-      >
-        <Ionicons name="add" size={20} color={colors.background} />
-        <Text style={{ color: colors.background, fontSize: fontSize.body, fontWeight: '600' }}>
-          {t('today.empty.add')}
-        </Text>
-      </Pressable>
+      {!readOnly && (
+        <PillButton
+          kind="filled"
+          icon="add"
+          label={t('today.empty.add')}
+          onPress={() => router.push('/add')}
+        />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: { borderWidth: StyleSheet.hairlineWidth, alignItems: 'center' },
-  button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
 });

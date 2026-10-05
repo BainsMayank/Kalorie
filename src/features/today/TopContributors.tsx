@@ -4,20 +4,23 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { formatAmount, formatPercent } from '@/lib/format';
 import type { MacroSummary } from '@/lib/nutrition';
+import { useHideNumbers } from '@/stores/settings';
 import { useTheme } from '@/theme';
 
 import { macroColor } from './MacroSection';
 
 /**
  * "Top contributors": for each macro, the 3 foods that gave the most of it, with grams and
- * their % of the day's total for that macro (SPEC §2.2). Tapping a food opens its entry.
+ * their % of the day's total for that macro (SPEC §2.2). Tapping a food opens its entry;
+ * without `onOpenEntry` (a past day, read-only) the foods are just listed. Hide numbers: the
+ * foods in order, without grams or %.
  */
 export function TopContributors({
   macros,
   onOpenEntry,
 }: {
   macros: MacroSummary[];
-  onOpenEntry: (entryId: string) => void;
+  onOpenEntry?: (entryId: string) => void;
 }) {
   const { t } = useTranslation();
   const { colors, spacing, fontSize, radius } = useTheme();
@@ -58,10 +61,11 @@ function MacroFoods({
   onOpenEntry,
 }: {
   macro: MacroSummary;
-  onOpenEntry: (entryId: string) => void;
+  onOpenEntry?: (entryId: string) => void;
 }) {
   const { t } = useTranslation();
   const { colors, spacing, fontSize, minTapTarget } = useTheme();
+  const hide = useHideNumbers();
   const name = t(`macros.${macro.key}`);
 
   return (
@@ -93,15 +97,15 @@ function MacroFoods({
           return (
             <Pressable
               key={food.foodKey}
-              accessibilityRole="button"
-              accessibilityLabel={t('today.topLabel', {
-                name: food.name,
-                grams,
-                percent,
-                macro: name,
-              })}
-              accessibilityHint={t('log.entryHint')}
-              onPress={() => onOpenEntry(food.entryId)}
+              accessibilityRole={onOpenEntry ? 'button' : 'text'}
+              accessibilityLabel={
+                hide
+                  ? t('today.topLabelHidden', { name: food.name, macro: name })
+                  : t('today.topLabel', { name: food.name, grams, percent, macro: name })
+              }
+              accessibilityHint={onOpenEntry ? t('log.entryHint') : undefined}
+              disabled={!onOpenEntry}
+              onPress={() => onOpenEntry?.(food.entryId)}
               style={({ pressed }) => [
                 styles.row,
                 {
@@ -118,10 +122,14 @@ function MacroFoods({
               >
                 {food.name}
               </Text>
-              <Text style={{ color: colors.textSecondary, fontSize: fontSize.caption }}>
-                {t('today.topAmount', { grams, percent })}
-              </Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.iconInactive} />
+              {!hide && (
+                <Text style={{ color: colors.textSecondary, fontSize: fontSize.caption }}>
+                  {t('today.topAmount', { grams, percent })}
+                </Text>
+              )}
+              {onOpenEntry && (
+                <Ionicons name="chevron-forward" size={16} color={colors.iconInactive} />
+              )}
             </Pressable>
           );
         })

@@ -1,23 +1,20 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { UndoBar } from '@/components';
-import type { LogEntry, MealSlot } from '@/db/user/schema';
+import { PillButton, UndoBar } from '@/components';
 import { sumNutrients } from '@/lib/nutrition';
 import { useLogStore } from '@/stores/log';
 import { useTheme } from '@/theme';
 
-import { CopySheet } from './CopySheet';
 import { DateSwitcher } from './DateSwitcher';
 import { DayTimeline, useKcalText } from './DayTimeline';
-import { EditEntrySheet } from './EditEntrySheet';
-import { useDayLog } from './useDayLog';
-
-/** What the Copy sheet copies: one meal, or the whole day. */
-type Copying = { slot?: MealSlot; entries: LogEntry[] };
+import { RecentlyDeletedSheet } from './RecentlyDeletedSheet';
+import { useDayLog, useDeletedEntries } from './useDayLog';
+import { useDaySheets } from './useDaySheets';
 
 /**
  * The Log tab (SPEC §2.10): the chosen day's entries grouped by meal slot, with kcal per
@@ -26,16 +23,18 @@ type Copying = { slot?: MealSlot; entries: LogEntry[] };
  */
 export function LogScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
   const { colors, spacing, fontSize, minTapTarget } = useTheme();
   const day = useLogStore((state) => state.day);
   const log = useDayLog(day);
   const kcalText = useKcalText();
-  const [editing, setEditing] = useState<LogEntry | null>(null);
-  const [copying, setCopying] = useState<Copying | null>(null);
+  const sheets = useDaySheets(day);
+  const deleted = useDeletedEntries(day);
+  const [showDeleted, setShowDeleted] = useState(false);
   const [scrollEnabled, setScrollEnabled] = useState(true);
 
   const entries = log.status === 'ready' ? log.entries : [];
-  const dayKcal = sumNutrients(entries.map((e) => e.nutrients)).energy_kcal;
+  const dayKcal = kcalText(sumNutrients(entries.map((e) => e.nutrients)).energy_kcal ?? 0);
 
   return (
     <SafeAreaView edges={['top']} style={[styles.flex, { backgroundColor: colors.background }]}>
@@ -45,6 +44,13 @@ export function LogScreen() {
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: 96, gap: spacing.lg }}
       >
         <DateSwitcher />
+        <View style={styles.start}>
+          <PillButton
+            icon="barcode-outline"
+            label={t('log.scan')}
+            onPress={() => router.push('/scan')}
+          />
+        </View>
 
         {log.status === 'error' ? (
           <Text style={{ color: colors.textSecondary, fontSize: fontSize.body }}>
@@ -57,15 +63,17 @@ export function LogScreen() {
                 <Text
                   style={[styles.flex, { color: colors.textSecondary, fontSize: fontSize.body }]}
                 >
-                  {t('log.dayTotal')}{' '}
-                  <Text style={{ color: colors.text, fontWeight: '600' }}>
-                    {kcalText(dayKcal ?? 0)}
-                  </Text>
+                  {dayKcal !== null && (
+                    <>
+                      {t('log.dayTotal')}{' '}
+                      <Text style={{ color: colors.text, fontWeight: '600' }}>{dayKcal}</Text>
+                    </>
+                  )}
                 </Text>
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={t('copy.day')}
-                  onPress={() => setCopying({ entries: entries.map((e) => e.entry) })}
+                  onPress={() => sheets.copy(entries.map((e) => e.entry))}
                   style={({ pressed }) => [
                     styles.row,
                     { minHeight: minTapTarget, gap: spacing.xs, opacity: pressed ? 0.6 : 1 },
@@ -80,23 +88,35 @@ export function LogScreen() {
             )}
             <DayTimeline
               entries={entries}
-              onEdit={setEditing}
-              onCopy={(slot, slotEntries) => setCopying({ slot, entries: slotEntries })}
+              onEdit={sheets.edit}
+              onCopy={(slot, slotEntries) => sheets.copy(slotEntries, slot)}
+              onSaveThali={sheets.saveThali}
               onSwipeChange={(swiping) => setScrollEnabled(!swiping)}
             />
+            {deleted.length > 0 && (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('log.deleted', { count: deleted.length })}
+                onPress={() => setShowDeleted(true)}
+                style={({ pressed }) => [
+                  styles.row,
+                  { minHeight: minTapTarget, gap: spacing.xs, opacity: pressed ? 0.6 : 1 },
+                ]}
+              >
+                <Ionicons name="trash-outline" size={18} color={colors.textSecondary} />
+                <Text style={{ color: colors.textSecondary, fontSize: fontSize.body }}>
+                  {t('log.deleted', { count: deleted.length })}
+                </Text>
+              </Pressable>
+            )}
           </>
         )}
       </ScrollView>
 
       <UndoBar placement="tabs" />
-      {editing && <EditEntrySheet entry={editing} onClose={() => setEditing(null)} />}
-      {copying && (
-        <CopySheet
-          entries={copying.entries}
-          slot={copying.slot}
-          fromDay={day}
-          onClose={() => setCopying(null)}
-        />
+      {sheets.sheets}
+      {showDeleted && deleted.length > 0 && (
+        <RecentlyDeletedSheet entries={deleted} onClose={() => setShowDeleted(false)} />
       )}
     </SafeAreaView>
   );
@@ -105,4 +125,5 @@ export function LogScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   row: { flexDirection: 'row', alignItems: 'center' },
+  start: { alignSelf: 'flex-start' },
 });

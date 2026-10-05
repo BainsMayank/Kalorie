@@ -1,5 +1,7 @@
-// Oil / ghee adjuster for dishes with a recipe (SPEC §5.5), and the frying-oil fix the foods.db
-// build applies to INDB recipes (SPEC §3).
+// Oil / ghee adjuster (SPEC §5.5), and the frying-oil fix the foods.db build applies to INDB
+// recipes (SPEC §3).
+
+import type { NutrientKey, NutrientValues } from './nutrients';
 
 /** Oil level stored on a log entry: −1 Less, 0 Normal, +1 More. */
 export type OilLevel = -1 | 0 | 1;
@@ -70,4 +72,103 @@ export const FRYING_OIL_ABSORBED = 0.15;
 /** Grams of frying oil that end up in the food: 15% of everything else, at most what's listed. */
 export function absorbedFryingOilGrams(listedOilG: number, otherIngredientsG: number): number {
   return Math.max(0, Math.min(listedOilG, FRYING_OIL_ABSORBED * otherIngredientsG));
+}
+
+// --- Less / Normal / More on a logged portion (SPEC §5.5) ----------------------------------
+
+/**
+ * The nutrients the oil control moves: energy and the fats. Protein, carbs, fibre, minerals and
+ * vitamins stay as they are — the same katori of dal, just with less or more ghee in it.
+ */
+export const OIL_NUTRIENTS = [
+  'energy_kcal',
+  'fat_g',
+  'sat_fat_g',
+  'mufa_g',
+  'pufa_g',
+  'trans_fat_g',
+  'cholesterol_mg',
+] as const satisfies readonly NutrientKey[];
+
+export type OilNutrient = (typeof OIL_NUTRIENTS)[number];
+
+/**
+ * What one step of the oil control (Less → Normal or Normal → More) adds to 100 g of a dish.
+ * A dish without cooking fat has no step (`null`) and shows no oil control.
+ */
+export type OilStep = Record<OilNutrient, number>;
+
+/** An ingredient of a recipe: its grams and its nutrients per 100 g (unknown counts as none). */
+export interface FatIngredient {
+  grams: number;
+  nutrients: Partial<Record<NutrientKey, number | null>>;
+}
+
+/**
+ * The oil step of a dish with a recipe: half of its fat ingredients (Less = 0.5×, More = 1.5×),
+ * per 100 g of the dish.
+ *
+ *   step(n) = 0.5 × Σ fat grams / 100 × fat(n)  ÷  yield × 100
+ *
+ * @param fats    the recipe's fat ingredients (oil, ghee, butter…)
+ * @param yieldG  the weight the dish's per-100 g values refer to
+ */
+export function recipeOilStep(fats: readonly FatIngredient[], yieldG: number): OilStep | null {
+  const fatGrams = fats.reduce((sum, f) => sum + f.grams, 0);
+  if (fatGrams <= 0 || yieldG <= 0) return null;
+  const step = {} as OilStep;
+  for (const key of OIL_NUTRIENTS) {
+    const inRecipe = fats.reduce((sum, f) => sum + (f.grams / 100) * (f.nutrients[key] ?? 0), 0);
+    step[key] = ((0.5 * inRecipe) / yieldG) * 100;
+  }
+  return step;
+}
+
+/**
+ * Sunflower oil, per 100 g (INDB "Oil, sunflower"): the oil used for foods that are cooked with
+ * fat but have no recipe to take it from.
+ */
+export const GENERIC_OIL: OilStep = {
+  energy_kcal: 900,
+  fat_g: 100,
+  sat_fat_g: 11.39,
+  mufa_g: 25.96,
+  pufa_g: 62.65,
+  trans_fat_g: 0,
+  cholesterol_mg: 0,
+};
+
+/** Grams of oil one step adds to a katori-sized 150 g of a dish without a recipe. */
+export const OIL_STEP_G_PER_150G = 5;
+
+/** The oil step of a food cooked with fat but without a recipe: 5 g of oil per 150 g. */
+export function genericOilStep(): OilStep {
+  const step = {} as OilStep;
+  for (const key of OIL_NUTRIENTS) {
+    step[key] = (GENERIC_OIL[key] * OIL_STEP_G_PER_150G) / 150;
+  }
+  return step;
+}
+
+/**
+ * A portion's nutrients at an oil level:
+ *
+ *   value(n) = portion(n) + level × step(n) × grams / 100      (level −1, 0 or +1)
+ *
+ * Only energy and the fats change. A value that is unknown stays unknown, and none goes below
+ * zero (Less can't take out more fat than the portion has).
+ */
+export function withOilLevel(
+  portion: NutrientValues,
+  step: OilStep | null,
+  grams: number,
+  level: number,
+): NutrientValues {
+  if (step === null || level === 0 || grams <= 0) return portion;
+  const result = { ...portion };
+  for (const key of OIL_NUTRIENTS) {
+    const value = portion[key];
+    if (value !== null) result[key] = Math.max(0, value + (level * step[key] * grams) / 100);
+  }
+  return result;
 }

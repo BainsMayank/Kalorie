@@ -1,0 +1,38 @@
+# Starter foods for each meal slot (SPEC §4.1 slot_suggestions, §5.9): shown under "Often at …"
+# until the person has logged at least 3 foods in that slot, at each food's usual portion.
+# slot: breakfast, lunch, snacks or dinner. Rows keep their order within a slot.
+# ref:  "<source>:<source_code>" of the food, as in search_pins.csv.
+# name: the food's name, checked by the build so a wrong ref is caught.
+slot,ref,name
+breakfast,indb:ASC001,Hot tea
+breakfast,indb:BFP045,Vegetable poha
+breakfast,indb:BFP039,Semolina upma
+breakfast,indb:ASC144,Idli
+breakfast,indb:ASC097,Plain parantha/paratha
+breakfast,ifct:M004,"Egg, poultry, whole, boiled"
+breakfast,ifct:L002,"Milk, whole, Cow"
+breakfast,ifct:E012,"Banana, ripe, robusta"
+lunch,indb:ASC096,Chapati/Roti
+lunch,indb:ASC155,Mixed dal
+lunch,indb:ASC113,Boiled rice
+lunch,indb:ASC171,Potato cauliflower
+lunch,usda_fnd:2259793,"Yogurt, plain, whole milk"
+lunch,indb:ASC165,Kidney bean curry
+lunch,indb:ASC162,Chickpeas curry
+lunch,indb:ASC167,Sambar
+snacks,indb:ASC001,Hot tea
+snacks,indb:BFP008,Steeped hot coffee
+snacks,ifct:E012,"Banana, ripe, robusta"
+snacks,ifct:E001,"Apple, big"
+snacks,indb:ASC259,Sprouted moong salad
+snacks,indb:ASC474,Dhokla
+snacks,indb:OSR114,Bhel puri
+snacks,indb:ASC361,Potato samosa
+dinner,indb:ASC096,Chapati/Roti
+dinner,indb:ASC155,Mixed dal
+dinner,indb:ASC113,Boiled rice
+dinner,indb:ASC487,Vegetable khichdi/khichri
+dinner,indb:ASC178,Dry potato
+dinner,indb:ASC195,Paneer curry
+dinner,indb:ASC240,Chicken curry
+dinner,usda_fnd:2259793,"Yogurt, plain, whole milk"

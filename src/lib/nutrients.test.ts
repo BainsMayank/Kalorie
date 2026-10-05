@@ -9,7 +9,7 @@ import {
   roundTo,
   scale,
   sumKnown,
-  vitaminARaeUg,
+  vitaminAUg,
 } from './nutrients';
 
 describe('nutrient list', () => {
@@ -95,20 +95,20 @@ describe('estimateEnergyKcal', () => {
   });
 });
 
-describe('vitaminARaeUg', () => {
-  it('adds retinol and β-carotene / 12 (IFCT egg)', () => {
-    expect(vitaminARaeUg({ retinolUg: 198, betaCaroteneUg: 14.5 })).toBeCloseTo(199.21, 2);
+describe('vitaminAUg (ICMR-NIN 6:1 and 12:1)', () => {
+  it('adds retinol and β-carotene / 6 (IFCT egg)', () => {
+    expect(vitaminAUg({ retinolUg: 198, betaCaroteneUg: 14.5 })).toBeCloseTo(200.42, 2);
   });
 
-  it('divides other provitamin-A carotenoids by 24 (USDA)', () => {
-    expect(
-      vitaminARaeUg({ retinolUg: 0, betaCaroteneUg: 120, otherCarotenoidsUg: 48 }),
-    ).toBeCloseTo(12);
+  it('divides α-carotene and β-cryptoxanthin by 12 (USDA)', () => {
+    expect(vitaminAUg({ retinolUg: 0, betaCaroteneUg: 120, otherCarotenoidsUg: 48 })).toBeCloseTo(
+      24,
+    );
   });
 
   it('treats a missing part as zero but all missing as unknown', () => {
-    expect(vitaminARaeUg({ retinolUg: null, betaCaroteneUg: 2605 })).toBeCloseTo(217.08, 2);
-    expect(vitaminARaeUg({ retinolUg: null, betaCaroteneUg: null })).toBeNull();
+    expect(vitaminAUg({ retinolUg: null, betaCaroteneUg: 2605 })).toBeCloseTo(434.17, 2);
+    expect(vitaminAUg({ retinolUg: null, betaCaroteneUg: null })).toBeNull();
   });
 });
 

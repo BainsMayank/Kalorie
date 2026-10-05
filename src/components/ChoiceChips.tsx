@@ -11,13 +11,17 @@ type Props<T extends string> = {
   /** Read out by screen readers for the whole group, e.g. "Unit". */
   label: string;
   choices: readonly Choice<T>[];
-  selected: T;
+  /** `null` = nothing picked yet (a question that can be skipped). */
+  selected: T | null;
   onSelect: (value: T) => void;
   /** One line that scrolls sideways, instead of wrapping onto more lines. */
   scroll?: boolean;
 };
 
-/** A row of pill buttons where exactly one is picked (units, meal slots…). Wraps onto more lines. */
+/**
+ * A row of pill buttons where one is picked (units, meal slots…), or none yet. Wraps onto more
+ * lines.
+ */
 export function ChoiceChips<T extends string>({
   label,
   choices,

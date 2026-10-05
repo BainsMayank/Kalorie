@@ -3,10 +3,12 @@ import {
   TYPO_TIER_OFFSET,
   allowedTypos,
   correctedQueries,
+  customFoodMatch,
   editDistance,
   foodAliases,
   ftsQuery,
   matchFood,
+  mergeByTier,
   nameAlternatives,
   normalizeText,
   phoneticKey,
@@ -196,6 +198,23 @@ describe('rankFoods', () => {
     expect(ranked.map((r) => r.food.id)).toEqual([2, 1]);
     expect(ranked[1].tier).toBe(MatchTier.exact + TYPO_TIER_OFFSET);
   });
+
+  it('puts foods logged lately first on the same match, most often first', () => {
+    const foods = [
+      candidate(1, 'Okra fry', 1),
+      candidate(2, 'Okra, raw', 3),
+      candidate(3, 'Stuffed okra', 1),
+    ];
+    const uses = new Map([
+      [2, 5],
+      [3, 1],
+    ]);
+    const ranked = rankFoods(foods, ['okra'], { uses });
+    // "Okra, raw" (logged 5 times) beats "Okra fry" on the same tier; "Stuffed okra" is a
+    // weaker match, so being logged once doesn't lift it above them.
+    expect(ranked.map((r) => r.food.id)).toEqual([2, 1, 3]);
+    expect(ranked.map((r) => r.uses)).toEqual([5, 0, 1]);
+  });
 });
 
 describe('editDistance', () => {
@@ -230,5 +249,50 @@ describe('typoCorrections', () => {
   it('skips words the prefix search already finds, and very short words', () => {
     expect(typoCorrections('bhin', vocabulary)).toEqual([]);
     expect(typoCorrections('da', vocabulary)).toEqual([]);
+  });
+});
+
+describe('customFoodMatch', () => {
+  it('matches every query word at the start of a word of the name or brand', () => {
+    expect(customFoodMatch(['moms', 'raj'], "Mom's rajma", null)?.tier).toBe(
+      MatchTier.startsWithPartial,
+    );
+    expect(customFoodMatch(queryWords("mom's"), "Mom's rajma", null)).not.toBeNull();
+    expect(customFoodMatch(['maggi'], 'Masala noodles', 'Maggi')).not.toBeNull();
+    expect(customFoodMatch(['daal'], 'Dal tadka (mom)', null)?.tier).toBe(MatchTier.startsWith);
+    expect(customFoodMatch(['rajma'], 'Rajma', null)?.tier).toBe(MatchTier.exact);
+  });
+
+  it("doesn't match a word that isn't there", () => {
+    expect(customFoodMatch(['paneer'], "Mom's rajma", null)).toBeNull();
+    expect(customFoodMatch(['ajma'], "Mom's rajma", null)).toBeNull();
+    expect(customFoodMatch([], "Mom's rajma", null)).toBeNull();
+  });
+});
+
+describe('mergeByTier', () => {
+  it('keeps each list in order and puts the first list first on the same tier', () => {
+    const own = [
+      { name: 'my dal', tier: 2, uses: 0 },
+      { name: 'my dal fry', tier: 6, uses: 0 },
+    ];
+    const db = [
+      { name: 'pinned dal', tier: 0, uses: 0 },
+      { name: 'dal makhani', tier: 2, uses: 0 },
+      { name: 'mixed dal', tier: 3, uses: 0 },
+    ];
+    expect(mergeByTier(own, db).map((f) => f.name)).toEqual([
+      'pinned dal',
+      'my dal',
+      'dal makhani',
+      'mixed dal',
+      'my dal fry',
+    ]);
+  });
+
+  it('puts a food logged more often first on the same tier', () => {
+    const own = [{ name: 'my dal', tier: 2, uses: 1 }];
+    const db = [{ name: 'dal makhani', tier: 2, uses: 4 }];
+    expect(mergeByTier(own, db).map((f) => f.name)).toEqual(['dal makhani', 'my dal']);
   });
 });

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { FoodDetail, FoodUnitOption } from '@/db/foods';
 import { formatQty } from '@/lib/format';
 import { nutrientsForGrams } from '@/lib/nutrition';
+import { withOilLevel, type OilLevel } from '@/lib/oil';
 import { entryGrams, quantityForNewUnit, stepQuantity } from '@/lib/units';
 
 /** Reads a typed amount: "1.5" or "1,5" → 1.5; anything else → 0. */
@@ -12,10 +13,13 @@ export function parseQty(text: string): number {
 }
 
 /**
- * The amount being chosen for a food: unit, quantity (as typed), grams and nutrients.
- * Starts at `start` (e.g. an entry being edited) or at the food's usual portion.
+ * The amount being chosen for a food: unit, quantity (as typed), grams, oil level and nutrients.
+ * Starts at `start` (e.g. an entry being edited) or at the food's usual portion, normal oil.
  */
-export function usePortion(food: FoodDetail, start?: { unit: string; qty: number }) {
+export function usePortion(
+  food: FoodDetail,
+  start?: { unit: string; qty: number; oilLevel?: OilLevel },
+) {
   const [unit, setUnit] = useState<FoodUnitOption>(
     () =>
       food.units.find((u) => u.unit === (start?.unit ?? food.defaultUnit)) ??
@@ -32,9 +36,16 @@ export function usePortion(food: FoodDetail, start?: { unit: string; qty: number
     ),
   );
 
+  const [oilLevel, setOilLevel] = useState<OilLevel>(start?.oilLevel ?? 0);
+
   const qty = parseQty(qtyText);
   const grams = entryGrams(qty, unit.unit, food.units, food.densityGPerMl) ?? qty * unit.grams;
-  const nutrients = nutrientsForGrams(food.nutrients, grams);
+  const nutrients = withOilLevel(
+    nutrientsForGrams(food.nutrients, grams),
+    food.oilStep,
+    grams,
+    oilLevel,
+  );
 
   const pickUnit = (next: FoodUnitOption) => {
     setQtyText(formatQty(quantityForNewUnit(next.unit, next.grams, grams)));
@@ -43,5 +54,16 @@ export function usePortion(food: FoodDetail, start?: { unit: string; qty: number
   const step = (direction: 1 | -1) =>
     setQtyText(formatQty(stepQuantity(qty, unit.unit, direction)));
 
-  return { unit, qtyText, setQtyText, qty, grams, nutrients, pickUnit, step };
+  return {
+    unit,
+    qtyText,
+    setQtyText,
+    qty,
+    grams,
+    oilLevel,
+    setOilLevel,
+    nutrients,
+    pickUnit,
+    step,
+  };
 }

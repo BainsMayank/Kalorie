@@ -1,15 +1,29 @@
 import { Calendar } from 'react-native-calendars';
 
+import { useCalendarLocale } from '@/i18n/calendar';
 import { useTheme } from '@/theme';
 
-/** A month calendar in the app's colours (Monday first); tapping a day picks it. */
-export function DayCalendar({ day, onPick }: { day: string; onPick: (day: string) => void }) {
+/**
+ * A month calendar in the app's colours and language (Monday first); tapping a day picks it.
+ * `maxDate` greys out the days after it.
+ */
+export function DayCalendar({
+  day,
+  onPick,
+  maxDate,
+}: {
+  day: string;
+  onPick: (day: string) => void;
+  maxDate?: string;
+}) {
   const { colors, scheme } = useTheme();
+  const language = useCalendarLocale();
   return (
     <Calendar
-      // A new key when the theme changes, because the calendar reads its colours once.
-      key={scheme}
+      // A new key when the theme or language changes: the calendar reads them once.
+      key={`${scheme}-${language}`}
       current={day}
+      maxDate={maxDate}
       firstDay={1}
       markedDates={{ [day]: { selected: true } }}
       onDayPress={(picked: { dateString: string }) => onPick(picked.dateString)}

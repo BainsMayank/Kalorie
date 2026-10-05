@@ -53,6 +53,16 @@ export function emptyNutrients(): NutrientValues {
   return values;
 }
 
+/**
+ * The 35 nutrients out of a database row whose columns are named after them (`energy_kcal`…):
+ * a `foods`, `custom_foods` or `recipe_items` row.
+ */
+export function pickNutrients(row: NutrientValues): NutrientValues {
+  const values = {} as NutrientValues;
+  for (const key of NUTRIENT_KEYS) values[key] = row[key];
+  return values;
+}
+
 // --- Unit conversions -------------------------------------------------------------------
 
 export const KJ_PER_KCAL = 4.184;
@@ -102,19 +112,28 @@ export function estimateEnergyKcal(
 }
 
 /**
- * Vitamin A as retinol activity equivalents (RAE), in µg:
- * retinol + β-carotene / 12 + other provitamin-A carotenoids / 24.
+ * Vitamin A in µg, with ICMR-NIN 2020's conversion factors (short report p. 10): retinol +
+ * β-carotene / 6 + other provitamin-A carotenoids (α-carotene, β-cryptoxanthin) / 12.
+ * (USDA's RAE uses 12 and 24, which gives half as much vitamin A from plant foods.)
  * Unknown parts count as zero, but if every part is unknown the result is unknown.
  */
-export function vitaminARaeUg(parts: {
+export function vitaminAUg(parts: {
   retinolUg: number | null;
   betaCaroteneUg: number | null;
   otherCarotenoidsUg?: number | null;
 }): number | null {
   const { retinolUg, betaCaroteneUg, otherCarotenoidsUg = null } = parts;
   if (retinolUg === null && betaCaroteneUg === null && otherCarotenoidsUg === null) return null;
-  return (retinolUg ?? 0) + (betaCaroteneUg ?? 0) / 12 + (otherCarotenoidsUg ?? 0) / 24;
+  return (
+    (retinolUg ?? 0) +
+    (betaCaroteneUg ?? 0) / BETA_CAROTENE_PER_RETINOL +
+    (otherCarotenoidsUg ?? 0) / OTHER_CAROTENOIDS_PER_RETINOL
+  );
 }
+
+/** ICMR-NIN 2020 (p. 10): 6 µg β-carotene = 1 µg retinol; 12 µg for α-carotene, β-cryptoxanthin. */
+export const BETA_CAROTENE_PER_RETINOL = 6;
+export const OTHER_CAROTENOIDS_PER_RETINOL = 12;
 
 /** Rounds to a number of decimals; `null` stays `null`. Keeps the database small and tidy. */
 export function roundTo(value: number | null, decimals: number): number | null {

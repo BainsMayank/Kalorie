@@ -11,8 +11,6 @@ export const UNIT_DEFAULTS = [
   { unit: 'g', ml: null, grams: 1, label: 'g' },
 ] as const;
 
-export type StandardUnit = (typeof UNIT_DEFAULTS)[number]['unit'];
-
 /** A per-food unit, as stored in `food_units` (e.g. "1 medium roti = 35 g"). */
 export interface FoodUnit {
   unit: string;

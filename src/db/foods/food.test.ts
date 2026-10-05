@@ -1,6 +1,6 @@
 // Reads the real foods.db.
 
-import { getFoodDetail, getLoggedFoods, getSlotStarters } from './food';
+import { getFoodDetail, getLoggedFoods, getSlotStarters, getThaliTemplates } from './food';
 import { searchFoods } from './search';
 import { openFoodsDbForTests } from './testing';
 
@@ -33,7 +33,31 @@ describe('getLoggedFoods', () => {
 });
 
 describe('getSlotStarters', () => {
-  it('reads starter foods for a slot (none yet: slot_suggestions.csv is still to come)', async () => {
-    expect(await getSlotStarters(db, 'breakfast')).toEqual([]);
+  it('reads starter foods for a slot, in order (data/curated/slot_suggestions.csv)', async () => {
+    const ids = await getSlotStarters(db, 'lunch');
+    const foods = await getLoggedFoods(db, ids);
+    expect(ids.slice(0, 2).map((id) => foods.get(id)?.name)).toEqual(['Chapati/Roti', 'Mixed dal']);
+    expect(await getSlotStarters(db, 'no-such-slot')).toEqual([]);
+  });
+});
+
+describe('getThaliTemplates', () => {
+  it('reads the 6 starter thalis with their foods in order (data/curated/thalis.csv)', async () => {
+    const thalis = await getThaliTemplates(db);
+    expect(thalis).toHaveLength(6);
+    const dalChawal = thalis.find((t) => t.name === 'Simple dal-chawal')!;
+    expect(dalChawal.items.map((i) => [i.qty, i.unit])).toEqual([
+      [1, 'katori'],
+      [1.5, 'katori'],
+      [1, 'tsp'],
+    ]);
+    const foods = await getLoggedFoods(
+      db,
+      thalis.flatMap((t) => t.items.map((i) => i.foodId)),
+    );
+    // Every item's food exists and offers the item's unit.
+    for (const item of thalis.flatMap((t) => t.items)) {
+      expect(foods.get(item.foodId)?.units[item.unit]).toBeDefined();
+    }
   });
 });

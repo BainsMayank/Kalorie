@@ -3,8 +3,10 @@ import { StyleSheet, Text, View } from 'react-native';
 // Imported from its own file: see CalorieRing.
 import { PieChart } from 'react-native-gifted-charts/dist/PieChart';
 
+import { bandText } from '@/i18n/bands';
 import { formatAmount, formatPercent } from '@/lib/format';
 import type { MacroKey, MacroSummary } from '@/lib/nutrition';
+import { useHideNumbers } from '@/stores/settings';
 import { useTheme, type Theme } from '@/theme';
 
 const PIE_RADIUS = 56;
@@ -16,7 +18,8 @@ export function macroColor(colors: Theme['colors'], key: MacroKey): string {
 
 /**
  * The macro pie (protein / carbs / fat by share of calories) and, beside it, one bar per macro
- * with the grams eaten vs the target (SPEC §2.2).
+ * with the grams eaten vs the target (SPEC §2.2). Hide numbers: the pie and bars stay, and each
+ * bar says how far along it is in words.
  */
 export function MacroSection({ macros }: { macros: MacroSummary[] }) {
   const { t } = useTranslation();
@@ -67,27 +70,41 @@ export function MacroSection({ macros }: { macros: MacroSummary[] }) {
 function MacroBar({ macro }: { macro: MacroSummary }) {
   const { t } = useTranslation();
   const { colors, spacing, fontSize } = useTheme();
+  const hide = useHideNumbers();
   const color = macroColor(colors, macro.key);
   const name = t(`macros.${macro.key}`);
   const eaten = formatAmount(macro.grams.eaten)!;
-  const target = formatAmount(macro.grams.target)!;
+  const target = formatAmount(macro.grams.target);
   const share = macro.kcalShare === null ? null : formatPercent(macro.kcalShare);
+  const words =
+    target === null ? null : bandText(t, macro.grams.fraction + macro.grams.overFraction, 'target');
+
+  let label: string;
+  let detail: string | null;
+  if (hide) {
+    label = words === null ? name : t('today.macroLabelHidden', { macro: name, status: words });
+    detail = words;
+  } else {
+    label =
+      target === null
+        ? t('today.macroLabelNoTarget', { macro: name, eaten })
+        : share === null
+          ? t('today.macroLabelNoShare', { macro: name, eaten, target })
+          : t('today.macroLabel', { macro: name, eaten, target, share });
+    detail =
+      target === null
+        ? t('today.macroGramsNoTarget', { eaten })
+        : t('today.macroGrams', { eaten, target });
+  }
 
   return (
-    <View
-      accessible
-      accessibilityLabel={
-        share === null
-          ? t('today.macroLabelNoShare', { macro: name, eaten, target })
-          : t('today.macroLabel', { macro: name, eaten, target, share })
-      }
-    >
+    <View accessible accessibilityLabel={label}>
       <View style={[styles.row, { gap: spacing.xs }]}>
         <View style={[styles.dot, { backgroundColor: color }]} />
         <Text style={{ color: colors.text, fontSize: fontSize.caption, fontWeight: '600' }}>
           {name}
         </Text>
-        {share !== null && (
+        {share !== null && !hide && (
           <Text style={{ color: colors.textSecondary, fontSize: fontSize.caption }}>
             {t('today.macroShare', { value: share })}
           </Text>
@@ -98,18 +115,23 @@ function MacroBar({ macro }: { macro: MacroSummary }) {
             { color: colors.textSecondary, fontSize: fontSize.caption, textAlign: 'right' },
           ]}
         >
-          {t('today.macroGrams', { eaten, target })}
+          {detail}
         </Text>
       </View>
-      {/* The bar stops at full; "more than planned" is in the numbers, not an alarm colour. */}
-      <View style={[styles.track, { backgroundColor: colors.surfaceMuted, marginTop: spacing.xs }]}>
+      {/* The bar stops at full; "more than planned" is in the numbers, not an alarm colour.
+          Without a target there is nothing to fill, so no bar. */}
+      {target !== null && (
         <View
-          style={[
-            styles.fill,
-            { backgroundColor: color, width: `${Math.round(macro.grams.fraction * 100)}%` },
-          ]}
-        />
-      </View>
+          style={[styles.track, { backgroundColor: colors.surfaceMuted, marginTop: spacing.xs }]}
+        >
+          <View
+            style={[
+              styles.fill,
+              { backgroundColor: color, width: `${Math.round(macro.grams.fraction * 100)}%` },
+            ]}
+          />
+        </View>
+      )}
     </View>
   );
 }

@@ -84,4 +84,34 @@ describe('settings store', () => {
 
     expect(useSettingsStore.getState().theme).toBe('system');
   });
+
+  it('has a 250 ml glass and a 2000 ml water goal until changed, and saves both', async () => {
+    await act(() => useSettingsStore.getState().load());
+    expect(useSettingsStore.getState()).toMatchObject({ waterGlassMl: 250, waterGoalMl: 2000 });
+
+    await act(() => useSettingsStore.getState().setWater(300, 2500));
+    expect(table.get('water_glass_ml')).toBe('300');
+    expect(table.get('water_goal_ml')).toBe('2500');
+
+    // Out of range keeps what was there.
+    await act(() => useSettingsStore.getState().setWater(5, 99999));
+    expect(useSettingsStore.getState()).toMatchObject({ waterGlassMl: 300, waterGoalMl: 2500 });
+
+    useSettingsStore.setState({ ...DEFAULT_SETTINGS, loaded: false });
+    await act(() => useSettingsStore.getState().load());
+    expect(useSettingsStore.getState()).toMatchObject({ waterGlassMl: 300, waterGoalMl: 2500 });
+  });
+
+  it('saves what the person eats, and ignores an unknown value', async () => {
+    await act(() => useSettingsStore.getState().setDiet('veg'));
+    expect(writeSetting).toHaveBeenCalledWith('diet_preference', 'veg');
+
+    useSettingsStore.setState({ diet: 'any' });
+    await act(() => useSettingsStore.getState().load());
+    expect(useSettingsStore.getState().diet).toBe('veg');
+
+    table.set('diet_preference', JSON.stringify('vegan'));
+    await act(() => useSettingsStore.getState().load());
+    expect(useSettingsStore.getState().diet).toBe('any');
+  });
 });

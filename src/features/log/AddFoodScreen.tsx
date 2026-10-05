@@ -1,10 +1,9 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { ChoiceChips, UndoBar } from '@/components';
+import { ChoiceChips, PillButton, UndoBar } from '@/components';
 import { FoodSearchScreen } from '@/features/foods/FoodSearchScreen';
 import { formatDayName } from '@/i18n/dates';
 import { autoSlot, clockMinute, visibleSlots } from '@/lib/day';
@@ -22,7 +21,8 @@ import { useToday } from './useToday';
  */
 export function AddFoodScreen() {
   const { t } = useTranslation();
-  const { colors, spacing, fontSize, radius, minTapTarget } = useTheme();
+  const router = useRouter();
+  const { colors, spacing, fontSize } = useTheme();
   const { slot: tappedSlot } = useLocalSearchParams<{ slot?: string }>();
   const slots = visibleSlots(useLogStore((state) => state.slots));
   const day = useLogStore((state) => state.day);
@@ -52,27 +52,17 @@ export function AddFoodScreen() {
   );
 
   const actions = (
-    <View style={[styles.row, { marginBottom: spacing.xs }]}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('add.quickAdd')}
+    <View style={[styles.row, { marginBottom: spacing.xs, gap: spacing.sm }]}>
+      <PillButton
+        icon="flash-outline"
+        label={t('add.quickAdd')}
         onPress={() => setQuickAdd(true)}
-        style={({ pressed }) => [
-          styles.row,
-          {
-            minHeight: minTapTarget,
-            paddingHorizontal: spacing.lg,
-            gap: spacing.xs,
-            borderRadius: radius.lg * 2,
-            borderWidth: 1,
-            borderColor: colors.border,
-            backgroundColor: pressed ? colors.surfaceMuted : colors.surface,
-          },
-        ]}
-      >
-        <Ionicons name="flash-outline" size={18} color={colors.text} />
-        <Text style={{ color: colors.text, fontSize: fontSize.body }}>{t('add.quickAdd')}</Text>
-      </Pressable>
+      />
+      <PillButton
+        icon="barcode-outline"
+        label={t('add.scan')}
+        onPress={() => router.push({ pathname: '/scan', params: slotId ? { slot: slotId } : {} })}
+      />
     </View>
   );
 
